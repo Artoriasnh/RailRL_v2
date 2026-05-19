@@ -39,6 +39,10 @@ from .action import RouteIndex, feasible_actions
 from .special_flags import compute_all_flags, get_flag_sources
 from .state_helpers import TrainStateLookup, SubgraphExtractor
 from .leak_audit import assert_no_leak, LeakAuditError
+from .state_history import (
+    TrackOccupancyHistory, SignalAspectHistory, BerthHistory,
+    MovementsLookup, EventTokenStream,
+)
 
 
 # ============================================================
@@ -91,29 +95,54 @@ class StaticNodeTables:
 class SnapshotBuilder:
     """Build one snapshot per decision point.
 
-    Init once (loads static graph, static node tables, route index, etc.),
-    then call .build_snapshot(decision_row) many times.
+    Init once (loads static graph, static node tables, route index,
+    histories, etc.), then call .build_snapshot(decision_row) many times.
     """
     static_view:       StaticGraphView
     static_nodes:      StaticNodeTables
     route_index:       RouteIndex
     train_lookup:      TrainStateLookup
     subgraph:          SubgraphExtractor
+    # Round 3 — time-aware histories
+    track_history:     Optional[TrackOccupancyHistory] = None
+    signal_history:    Optional[SignalAspectHistory] = None
+    berth_history:     Optional[BerthHistory] = None
+    movements_lookup:  Optional[MovementsLookup] = None
+    event_stream:      Optional[EventTokenStream] = None
     run_leak_audit:    bool = True
 
     @classmethod
-    def build_default(cls, td_events: pd.DataFrame) -> "SnapshotBuilder":
-        """Convenience constructor — load all static data and indices."""
+    def build_default(cls, td_events: pd.DataFrame,
+                       movements: Optional[pd.DataFrame] = None
+                       ) -> "SnapshotBuilder":
+        """Convenience constructor — load all static data, indices, histories."""
         view = StaticGraphView.load()
         nodes = StaticNodeTables.load()
         routes = pd.read_parquet(C.ROUTES_CLEAN_PARQUET)
         route_idx = RouteIndex(routes)
         train_lkp = TrainStateLookup.build(td_events)
         subgraph = SubgraphExtractor(view=view, n_hops=C.SUBGRAPH_HOPS)
+        # Histories
+        track_hist = TrackOccupancyHistory.build(td_events)
+        # Build signal full_name → bare_id map from static node table
+        fn_to_id = {str(r.get("full_name")): str(r.get("signal_id"))
+                     for r in nodes.signal.values()
+                     if r.get("full_name") is not None}
+        signal_hist = SignalAspectHistory.build(td_events,
+                                                  full_name_to_id=fn_to_id)
+        berth_hist = BerthHistory.build(td_events)
+        mv_lookup = MovementsLookup.build(movements) if movements is not None \
+                    else MovementsLookup()
+        ev_stream = EventTokenStream.build(td_events)
         return cls(
             static_view=view, static_nodes=nodes,
             route_index=route_idx, train_lookup=train_lkp,
             subgraph=subgraph,
+            track_history=track_hist,
+            signal_history=signal_hist,
+            berth_history=berth_hist,
+            movements_lookup=mv_lookup,
+            event_stream=ev_stream,
         )
 
     # ------------------------------------------------------------
@@ -149,26 +178,53 @@ class SnapshotBuilder:
         nodes_by_type = self.subgraph.extract(current_tc)
         edges = self.subgraph.filter_edges(nodes_by_type)
 
-        # 3. Build per-type node feature lists
+        # 3. Collect other active trains in subgraph (multi-train support)
+        other_train_ids = self._collect_other_active_trains(
+            t_ns, focal_train, nodes_by_type["track"],
+        )
+        all_train_ids = [focal_train] + sorted(other_train_ids)
+
+        # 4. Build per-type node feature lists
         nodes_track  = self._build_track_nodes(nodes_by_type["track"], t_ns,
                                                 focal_train, decision)
         nodes_signal = self._build_signal_nodes(nodes_by_type["signal"], t_ns)
         nodes_route  = self._build_route_nodes(nodes_by_type["route"], t_ns,
                                                 focal_train, decision)
-        nodes_train  = self._build_train_nodes(focal_train, t_ns, decision)
+        nodes_train  = self._build_train_nodes(
+            focal_train, t_ns, decision, other_train_ids=other_train_ids,
+        )
 
-        # 4. Edges (cast filtered DataFrames to list of structs)
+        # 5. Static edges (cast filtered DataFrames to list of structs)
         state_edges = self._format_edges(edges)
 
-        # 5. Event tokens (placeholder — actual K=256 slicing in Round 3)
-        event_tokens = self._build_event_tokens(t_ns)
+        # 6. Dynamic edges (at_berth, next_signal)
+        dyn_edges = self._build_dynamic_edges(
+            t_ns, all_train_ids,
+            nodes_by_type["track"], nodes_by_type["signal"],
+        )
 
-        # 6. Schedule outlook (placeholder — gbtt Movements join in Round 3)
+        # 7. Event tokens — K=256 most-recent events restricted to subgraph
+        #     assets (tracks + signals, in stable order matching node lists)
+        track_keys = [n["track_id"] for n in nodes_track]
+        # SignalAspectHistory keys by bare signal_id; EventTokenStream keys by
+        # whatever TD `id` column shows (full_name like STD5040). Map bare →
+        # full_name from static_nodes.signal so the event lookup hits.
+        signal_keys: list[str] = []
+        for n in nodes_signal:
+            static_sig = self.static_nodes.signal.get(n["signal_id"], {})
+            fn = static_sig.get("full_name")
+            signal_keys.append(str(fn) if fn else n["signal_id"])
+        subgraph_assets = track_keys + signal_keys
+        event_tokens = self._build_event_tokens(t_ns, subgraph_assets)
+
+        # 8. Schedule outlook (gbtt only, excludes focal_train)
         schedule_outlook = self._build_schedule_outlook(focal_train, t_ns)
 
-        # 7. Special flags
+        # 9. Special flags
         flags = self._build_special_flags(
-            focal_train, focal_signal, t_ns, decision, nodes_route
+            focal_train, focal_signal, t_ns, decision, nodes_route,
+            nodes_track=nodes_track, nodes_signal=nodes_signal,
+            all_train_ids=all_train_ids,
         )
         flags_meta = {
             "f_trts_pressed_source": "planned_platform",  # locked per spec 01 §17.5.4
@@ -224,13 +280,16 @@ class SnapshotBuilder:
             "state_edges_ends_at":     state_edges["ends_at"],
             "state_edges_protects":    state_edges["protects"],
             "state_edges_same_signal": state_edges["same_signal"],
-            "state_edges_at_berth":    [],   # dynamic — Round 3 TODO
-            "state_edges_next_signal": [],   # dynamic — Round 3 TODO
+            "state_edges_at_berth":    dyn_edges["at_berth"],
+            "state_edges_next_signal": dyn_edges["next_signal"],
             "state_event_tokens":       event_tokens,
             "state_schedule_outlook":   schedule_outlook,
             "state_special_flags":      flags,
             "state_special_flags_meta": flags_meta,
             "state_center":             center,
+            # `center` (no prefix) is what the leak audit reads; we keep both
+            # for downstream consumers that expect either name.
+            "center":                   center,
         }
 
         # 10. Leak audit
@@ -259,25 +318,42 @@ class SnapshotBuilder:
                              focal_train: str, decision: dict) -> list[dict]:
         """Build Track node feature dicts.
 
-        Per spec 02 §4.3, 18 features per node.
-        Per-window aggregates are placeholders (Round 3 TODO).
+        Per spec 02 §4.3, 18 features per node:
+          static (4): track_id, n_routes_using, platform_id, platform_sub
+          now (3): occupied_now, current_occupier_train_id, last_change_age_s
+          per-window aggregates (10): occupancy_fraction_W, n_state_changes_W
+              for W ∈ {1,5,10,15,30} min
+          focal-path (1): on_focal_train_path
         """
         out = []
-        # Compute focal train's candidate route TC set for `on_focal_train_path`
         focal_path_tcs = self._focal_path_tcs(focal_train, decision)
+        th = self.track_history
 
         for tc_id in track_ids:
             static = self.static_nodes.track.get(tc_id, {})
+            occupied = bool(th.occupied_now(tc_id, t_ns)) if th else False
+            occupier = th.current_occupier(tc_id, t_ns) if th else None
+            last_age = int(th.last_change_age_s(tc_id, t_ns)) if th else 0
+            # Per-window aggregates
+            win_fracs = {}
+            win_changes = {}
+            for w in C.TIME_WINDOWS_MINUTES:
+                if th is None:
+                    frac, n = 0.0, 0
+                else:
+                    frac, n = th.window_stats(tc_id, t_ns, w * 60.0)
+                win_fracs[f"occupancy_fraction_{w}m"] = float(frac)
+                win_changes[f"n_state_changes_{w}m"] = int(n)
             node = {
                 "track_id":          tc_id,
                 "n_routes_using":    int(static.get("n_routes_using", 0)),
                 "platform_id":       _to_nullable_int(static.get("platform_id")),
                 "platform_sub":      _to_str_or_none(static.get("platform_sub")),
-                "occupied_now":      False,                       # Round 3 from TD
-                "current_occupier_train_id": None,                # Round 3
-                **_NULL_PER_WINDOW_FRACTIONS,                     # Round 3
-                **_NULL_PER_WINDOW_AGGRS_TRACK,                   # Round 3
-                "last_change_age_s": 0,                           # Round 3
+                "occupied_now":      occupied,
+                "current_occupier_train_id": occupier,
+                **win_fracs,
+                **win_changes,
+                "last_change_age_s": last_age,
                 "on_focal_train_path": tc_id in focal_path_tcs,
             }
             out.append(node)
@@ -285,8 +361,27 @@ class SnapshotBuilder:
 
     def _build_signal_nodes(self, signal_ids: set[str], t_ns: int) -> list[dict]:
         out = []
+        sh = self.signal_history
+        bh = self.berth_history
         for sig_id in signal_ids:
             static = self.static_nodes.signal.get(sig_id, {})
+            restrictive = bool(sh.aspect_restrictive_now(sig_id, t_ns)) if sh else False
+            last_age = int(sh.last_change_age_s(sig_id, t_ns)) if sh else 0
+            # Per-window aggregates (fraction_red + n_changes)
+            win_fracs = {}
+            win_changes = {}
+            for w in C.TIME_WINDOWS_MINUTES:
+                if sh is None:
+                    frac, n = 0.0, 0
+                else:
+                    frac, n = sh.window_stats(sig_id, t_ns, w * 60.0)
+                win_fracs[f"aspect_fraction_red_{w}m"] = float(frac)
+                win_changes[f"aspect_n_changes_{w}m"] = int(n)
+            # Berth occupant — many signals double as platform-end berths;
+            # look up the berth whose name == signal_id.
+            berth_train, berth_age = (None, 0)
+            if bh is not None:
+                berth_train, berth_age = bh.berth_occupant_at(sig_id, t_ns)
             node = {
                 "signal_id":             sig_id,
                 "prefix":                _to_str_or_none(static.get("prefix")),
@@ -294,12 +389,12 @@ class SnapshotBuilder:
                 "is_platform_end":       bool(static.get("is_platform_end", False)),
                 "platform_id":           _to_nullable_int(static.get("platform_id")),
                 "platform_direction":    _to_str_or_none(static.get("platform_direction")),
-                "aspect_restrictive_now": False,                   # Round 3
-                **_NULL_ASPECT_RED_FRAC,                           # Round 3
-                **_NULL_PER_WINDOW_AGGRS_SIGNAL,                   # Round 3
-                "aspect_last_change_age_s": 0,                     # Round 3
-                "current_berth_train_id": None,                    # Round 3
-                "berth_dwell_age_s":      0,                       # Round 3
+                "aspect_restrictive_now": restrictive,
+                **win_fracs,
+                **win_changes,
+                "aspect_last_change_age_s": last_age,
+                "current_berth_train_id": berth_train,
+                "berth_dwell_age_s":      int(berth_age),
             }
             out.append(node)
         return out
@@ -338,35 +433,70 @@ class SnapshotBuilder:
         return out
 
     def _build_train_nodes(self, focal_train: str, t_ns: int,
-                            decision: dict) -> list[dict]:
+                            decision: dict,
+                            *,
+                            other_train_ids: Optional[set[str]] = None
+                            ) -> list[dict]:
         """Per spec 02 §4.6 + §17.5 — is_focal=True ONLY for focal_train.
 
-        Round 2 implementation: only the focal_train node. Other active
-        trains in subgraph deferred to Round 3.
+        Round 3: includes focal_train + any other_train_ids passed in. Order:
+        focal first, then others sorted alphabetically (stable ordering).
         """
-        current_tc = self.train_lookup.current_tc(focal_train, t_ns)
-        current_berth = self.train_lookup.current_berth(focal_train, t_ns)
-        time_in_berth = self.train_lookup.time_in_current_berth_s(focal_train, t_ns) or 0
+        nodes = [self._build_one_train_node(focal_train, t_ns, is_focal=True)]
+        if other_train_ids:
+            for tr in sorted(other_train_ids):
+                if tr == focal_train:
+                    continue
+                nodes.append(self._build_one_train_node(tr, t_ns, is_focal=False))
+        return nodes
 
-        hc_class = focal_train[0] if focal_train and len(focal_train) >= 4 else "non_standard"
+    def _build_one_train_node(self, train_id: str, t_ns: int,
+                                *, is_focal: bool) -> dict:
+        """Build one train node feature dict."""
+        current_tc = self.train_lookup.current_tc(train_id, t_ns)
+        current_berth = self.train_lookup.current_berth(train_id, t_ns)
+        time_in_berth = self.train_lookup.time_in_current_berth_s(train_id, t_ns) or 0
+
+        hc_class = train_id[0] if train_id and len(train_id) >= 4 else "non_standard"
         if hc_class not in {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}:
             hc_class = "non_standard"
         elif hc_class in {"7", "8"}:
             hc_class = "other"
 
-        focal_node = {
-            "train_id":                    focal_train,
-            "is_focal":                    True,   # ⭐ spec 02 §4.6
+        # Round 3: planned_platform + scheduled_delta_s from Movements gbtt
+        planned_plat: Optional[int] = None
+        sched_delta: Optional[int] = None
+        if self.movements_lookup is not None:
+            planned_plat = self.movements_lookup.planned_platform(train_id, t_ns)
+            sched_delta = self.movements_lookup.scheduled_delta_s(train_id, t_ns)
+
+        # current_platform — derived from current_tc's platform_id (if any)
+        cur_plat: Optional[int] = None
+        if current_tc is not None:
+            static_tc = self.static_nodes.track.get(current_tc, {})
+            cur_plat = _to_nullable_int(static_tc.get("platform_id"))
+
+        # recent_panel_requests_count — PRs in last 5 minutes (300s)
+        recent_pr = 0
+        if self.berth_history is not None:
+            recent_pr = int(self.berth_history.recent_pr_count(train_id, t_ns, 300.0))
+
+        return {
+            "train_id":                    train_id,
+            "is_focal":                    bool(is_focal),  # ⭐ spec 02 §4.6
             "headcode_class":              hc_class,
             "current_tc":                  current_tc or "",
             "current_berth":               current_berth or "",
-            "current_platform":            None,    # Round 3: derive from current_tc
-            "planned_platform":            None,    # Round 3: from Movements gbtt
+            "current_platform":            cur_plat,
+            "planned_platform":            planned_plat,
             "time_in_current_berth_s":     int(time_in_berth),
-            "scheduled_delta_s":           0,       # Round 3
-            "recent_panel_requests_count": 0,       # Round 3
+            "scheduled_delta_s":           int(sched_delta) if sched_delta is not None else 0,
+            "recent_panel_requests_count": int(recent_pr),
         }
-        return [focal_node]
+
+    # ------------------------------------------------------------
+    # Edges
+    # ------------------------------------------------------------
 
     def _format_edges(self, edges: dict[str, pd.DataFrame]) -> dict[str, list]:
         """Convert filtered edge DataFrames to lists of (src, dst, order) tuples."""
@@ -391,27 +521,115 @@ class SnapshotBuilder:
                 order = int(e["order"]) if "order" in e and pd.notna(e["order"]) else -1
                 rows.append({"src": src, "dst": dst, "order": order})
             out[ename] = rows
+        # Ensure all 6 keys are present (extract may yield empty frames)
+        for k in ("connects","traverses","starts_at","ends_at","protects","same_signal"):
+            out.setdefault(k, [])
         return out
 
-    def _build_event_tokens(self, t_ns: int) -> list[dict]:
-        """K=256 last events with time_ns < t (Round 3 TODO: actual implementation).
+    # ------------------------------------------------------------
+    # Event tokens, schedule outlook, special flags
+    # ------------------------------------------------------------
 
-        For now: empty list. Round 3 will load event_tokens.parquet + slice.
+    def _build_event_tokens(self, t_ns: int,
+                              subgraph_assets: list[str]) -> list[dict]:
+        """K=256 most-recent events restricted to subgraph assets.
+
+        Each token: dict(asset_idx, state, time_delta_s).
+        asset_idx is the position in `subgraph_assets` (NOT a global index —
+        the encoder will look up the corresponding node embedding by index).
         """
-        return []  # Round 3: load + slice last K=256 with time < t
+        if self.event_stream is None or not subgraph_assets:
+            return []
+        tokens = self.event_stream.slice_last_k(
+            subgraph_assets, t_ns, k=C.EVENT_TOKEN_K,
+        )
+        return [{"asset_idx": int(aidx), "state": int(st),
+                  "time_delta_s": float(dt)} for aidx, st, dt in tokens]
 
     def _build_schedule_outlook(self, focal_train: str, t_ns: int) -> list[dict]:
-        """Top-5 upcoming trains from Movements gbtt (Round 3 TODO).
+        """Top-K=5 upcoming trains (excluding focal_train) from Movements gbtt.
 
-        Per spec 02 §4.9: gbtt only, no actual.
+        Per spec 02 §4.9 + spec 01 §17.5: gbtt only, planned_platform is int
+        1-6 or None — NEVER a signal ID.
         """
-        return []  # Round 3: load Movements + slice
+        if self.movements_lookup is None:
+            return []
+        return self.movements_lookup.schedule_outlook(
+            t_ns,
+            k=C.SCHEDULE_OUTLOOK_TOPK,
+            lookahead_s=C.SCHEDULE_LOOKAHEAD_MIN * 60.0,
+            exclude_train=focal_train,
+        )
+
+    # ------------------------------------------------------------
+    # Dynamic edges (at_berth, next_signal) + multi-train collection
+    # ------------------------------------------------------------
+
+    def _collect_other_active_trains(self, t_ns: int, focal_train: str,
+                                       subgraph_tcs: set[str],
+                                       cap: Optional[int] = None) -> set[str]:
+        """Find other trains whose current_tc lies in the subgraph at t_ns.
+
+        Caps at `cap` (default = C.MAX_TRAINS_PADDED - 1, since focal counts).
+        """
+        if cap is None:
+            cap = max(0, C.MAX_TRAINS_PADDED - 1)
+        if self.track_history is None:
+            return set()
+        candidates: set[str] = set()
+        for tc_id in subgraph_tcs:
+            occ = self.track_history.current_occupier(tc_id, t_ns)
+            if occ is None or occ == focal_train:
+                continue
+            candidates.add(occ)
+            if len(candidates) >= cap:
+                break
+        return candidates
+
+    def _build_dynamic_edges(self, t_ns: int, all_train_ids: list[str],
+                              subgraph_tcs: set[str],
+                              subgraph_signals: set[str]
+                              ) -> dict[str, list[dict]]:
+        """Compute at_berth (train→track) and next_signal (train→signal).
+
+        at_berth: train_id sits in current_tc (track). Edge: (train, tc).
+        next_signal: train_id's next likely signal — derived from BerthHistory
+            (the signal whose berth this train currently occupies).
+        """
+        at_berth_edges: list[dict] = []
+        next_signal_edges: list[dict] = []
+        train_set = set(all_train_ids)
+        # at_berth
+        for tr in all_train_ids:
+            cur_tc = self.train_lookup.current_tc(tr, t_ns)
+            if cur_tc is None or cur_tc not in subgraph_tcs:
+                continue
+            at_berth_edges.append({"src": tr, "dst": cur_tc, "order": -1})
+        # next_signal — invert berth occupancy lookup
+        if self.berth_history is not None:
+            for sig_id in subgraph_signals:
+                occ, _age = self.berth_history.berth_occupant_at(sig_id, t_ns)
+                if occ is None or occ not in train_set:
+                    continue
+                next_signal_edges.append({"src": occ, "dst": sig_id, "order": -1})
+        return {
+            "at_berth":    at_berth_edges,
+            "next_signal": next_signal_edges,
+        }
+
+    # ------------------------------------------------------------
+    # Special flags (8 flags per spec 02 §4.10)
+    # ------------------------------------------------------------
 
     def _build_special_flags(self, focal_train: str, focal_signal: str, t_ns: int,
-                              decision: dict, nodes_route: list[dict]) -> dict:
+                              decision: dict, nodes_route: list[dict],
+                              *,
+                              nodes_track: Optional[list[dict]] = None,
+                              nodes_signal: Optional[list[dict]] = None,
+                              all_train_ids: Optional[list[str]] = None,
+                              ) -> dict:
         """Compute 8 special flags per spec 02 §4.10 / special_flags.py."""
         candidate_route_ids = decision.get("candidate_route_ids", []) or []
-        # Match candidate route_ids → first TC and end_platform
         candidate_first_tc = []
         candidate_cls = []
         candidate_end_plat = []
@@ -425,19 +643,54 @@ class SnapshotBuilder:
             candidate_cls.append(_to_str_or_none(static.get("cls")) or "")
             candidate_end_plat.append(_to_nullable_int(static.get("end_platform_id")))
 
+        # Round 3: real TC occupancy + platform occupancy
+        tc_occ_now: dict[str, bool] = {}
+        if nodes_track:
+            for n in nodes_track:
+                tc_occ_now[n["track_id"]] = bool(n.get("occupied_now", False))
+
+        # Platform occupancy: any track in nodes_track with this platform_id occupied
+        plat_occ_now: dict[int, bool] = {}
+        if nodes_track:
+            for n in nodes_track:
+                pid = n.get("platform_id")
+                if pid is None:
+                    continue
+                if bool(n.get("occupied_now", False)):
+                    plat_occ_now[int(pid)] = True
+                plat_occ_now.setdefault(int(pid), False)
+
+        # planned_platform + current_platform of focal_train
+        planned_plat = None
+        if self.movements_lookup is not None:
+            planned_plat = self.movements_lookup.planned_platform(focal_train, t_ns)
+        cur_plat = None
+        cur_tc = self.train_lookup.current_tc(focal_train, t_ns) if self.train_lookup else None
+        if cur_tc is not None:
+            cur_plat = _to_nullable_int(
+                self.static_nodes.track.get(cur_tc, {}).get("platform_id")
+            )
+
+        n_other = max(0, (len(all_train_ids) - 1) if all_train_ids else 0)
+        sched_delta = None
+        if self.movements_lookup is not None:
+            sched_delta = self.movements_lookup.scheduled_delta_s(focal_train, t_ns)
+
         flags = compute_all_flags(
             focal_train=focal_train,
             headcode_class_digit=(focal_train[0] if focal_train and len(focal_train) >= 4 else None),
             candidate_routes_first_tc=candidate_first_tc,
             candidate_route_cls_list=candidate_cls,
             candidate_end_platforms=candidate_end_plat,
-            tc_occupancy_now={},                  # Round 3: real TC occupancy
-            platform_occupancy_now={},            # Round 3
-            planned_platform=None,                # Round 3 from Movements
-            current_platform=None,                # Round 3 derived
-            trts_state_by_platform={},            # Round 3
-            n_other_active_trains=0,              # Round 3
-            scheduled_delta_seconds=None,         # Round 3
+            tc_occupancy_now=tc_occ_now,
+            platform_occupancy_now=plat_occ_now,
+            planned_platform=planned_plat,
+            current_platform=cur_plat,
+            trts_state_by_platform={},     # TRTS-by-platform: deferred to a
+                                             # Round 4 enhancement; flag
+                                             # defaults to 0 safely.
+            n_other_active_trains=int(n_other),
+            scheduled_delta_seconds=sched_delta,
         )
         return flags
 
