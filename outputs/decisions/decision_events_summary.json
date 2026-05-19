@@ -1,0 +1,38 @@
+{
+  "total_decision_events": 546418,
+  "by_prefix": {
+    "DC": 194796,
+    "TD": 145165,
+    "DW": 120894,
+    "DY": 58220,
+    "EC": 27343
+  },
+  "by_class": {
+    "M": 530267,
+    "S": 13720,
+    "C": 2430,
+    "SP": 1
+  },
+  "with_headcode_parsed": 543611,
+  "headcode_parse_rate_pct": 99.49,
+  "headcode_class_counts": {
+    "1": 364662,
+    "2": 77732,
+    "5": 62160,
+    "6": 21791,
+    "0": 8145,
+    "4": 4592,
+    "3": 4052,
+    "NaN": 2807,
+    "7": 442,
+    "8": 28,
+    "9": 7
+  },
+  "unique_train_ids": 2185,
+  "unique_signals": 92,
+  "unique_routes": 250,
+  "time_range": [
+    "2023-02-28 15:49:09",
+    "2024-04-25 15:36:48"
+  ]
+}

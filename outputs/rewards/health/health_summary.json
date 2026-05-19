@@ -1,0 +1,77 @@
+{
+  "n_decisions": 726978,
+  "n_episodes": 82429,
+  "r_total_mean": 0.2545954305614856,
+  "r_total_std": 0.6752162107320393,
+  "r_total_min": -30.3,
+  "r_total_max": 30.5,
+  "ep_mean": 2.2453902985445375,
+  "ep_std": 3.204158881520437,
+  "ep_p1": -4.9,
+  "ep_p50": 2.5,
+  "ep_p99": 5.5,
+  "frac_positive_episodes": 0.8835967923910274,
+  "coverage": {
+    "approach_distance": 261008,
+    "delay_change_seconds": 62772,
+    "next_tc_headway_seconds": 526409,
+    "route_outcome": 545289
+  },
+  "weight_sensitivity": {
+    "conservative": {
+      "weights": {
+        "w_delay": 0.5,
+        "w_throughput": 0.3,
+        "w_headway": 1.5,
+        "w_wait": 0.5
+      },
+      "ep_return_mean": 0.36580710016333867,
+      "ep_return_std": 2.5938764538239747,
+      "ep_return_p1": -7.261333333333334,
+      "ep_return_p50": 0.8999999999999999,
+      "ep_return_p99": 3.3,
+      "frac_positive": 0.6414975312086766
+    },
+    "default": {
+      "weights": {
+        "w_delay": 1.0,
+        "w_throughput": 0.5,
+        "w_headway": 1.0,
+        "w_wait": 0.3
+      },
+      "ep_return_mean": 2.2453902985445375,
+      "ep_return_std": 3.204158881520437,
+      "ep_return_p1": -4.9,
+      "ep_return_p50": 2.5,
+      "ep_return_p99": 5.5,
+      "frac_positive": 0.8835967923910274
+    },
+    "aggressive": {
+      "weights": {
+        "w_delay": 1.5,
+        "w_throughput": 1.0,
+        "w_headway": 0.5,
+        "w_wait": 0.1
+      },
+      "ep_return_mean": 6.093986223029414,
+      "ep_return_std": 4.798454568787505,
+      "ep_return_p1": -3.381200000000001,
+      "ep_return_p50": 6.5,
+      "ep_return_p99": 12.5125,
+      "frac_positive": 0.9778112072207596
+    },
+    "rank_correlations": {
+      "conservative_vs_default_spearman": 0.908072162353526,
+      "conservative_vs_aggressive_spearman": 0.5877374706960518,
+      "default_vs_aggressive_spearman": 0.8422205837191361
+    }
+  },
+  "proxy": {
+    "n_episodes": 82429,
+    "n_with_cancellation": 841,
+    "spearman_return_vs_no_cancel": 0.055404785134564316,
+    "spearman_return_vs_use_rate": 0.11707434119722654,
+    "mean_return_with_cancel": 1.0100258594952412,
+    "mean_return_without_cancel": 2.258124297334071
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "n_named_routes": 277,
+  "n_track_sections": 249,
+  "n_signals_with_outbound_routes": 100,
+  "by_prefix": {
+    "DW": {
+      "n_routes": 46,
+      "n_tracks_used": 70,
+      "n_distinct_signals": 30,
+      "avg_tcs_per_route": 5.48
+    },
+    "TD": {
+      "n_routes": 45,
+      "n_tracks_used": 66,
+      "n_distinct_signals": 29,
+      "avg_tcs_per_route": 6.62
+    },
+    "DC": {
+      "n_routes": 87,
+      "n_tracks_used": 106,
+      "n_distinct_signals": 49,
+      "avg_tcs_per_route": 6.63
+    },
+    "EC": {
+      "n_routes": 80,
+      "n_tracks_used": 66,
+      "n_distinct_signals": 35,
+      "avg_tcs_per_route": 6.16
+    },
+    "DY": {
+      "n_routes": 19,
+      "n_tracks_used": 35,
+      "n_distinct_signals": 15,
+      "avg_tcs_per_route": 4.26
+    }
+  },
+  "class_distribution": {
+    "M": 175,
+    "C": 53,
+    "S": 44,
+    "SP": 5
+  },
+  "tcs_per_route_describe": {
+    "count": 277.0,
+    "mean": 6.140794223826715,
+    "std": 2.2932707365836382,
+    "min": 1.0,
+    "25%": 5.0,
+    "50%": 6.0,
+    "75%": 8.0,
+    "max": 12.0
+  },
+  "routes_per_signal_describe": {
+    "count": 100.0,
+    "mean": 2.79,
+    "std": 2.5595730388903033,
+    "min": 1.0,
+    "25%": 1.0,
+    "50%": 2.0,
+    "75%": 3.0,
+    "max": 13.0
+  },
+  "signals_with_only_one_route": 42,
+  "signals_with_2plus_routes_decision_required": 58,
+  "signals_with_3plus_routes": 41,
+  "signals_with_4plus_routes": 24,
+  "max_routes_from_one_signal": 13,
+  "top10_busiest_signals": [
+    {
+      "signal": "5488",
+      "n_routes_from": 13
+    },
+    {
+      "signal": "5076",
+      "n_routes_from": 12
+    },
+    {
+      "signal": "5486",
+      "n_routes_from": 12
+    },
+    {
+      "signal": "5045",
+      "n_routes_from": 12
+    },
+    {
+      "signal": "5475",
+      "n_routes_from": 8
+    },
+    {
+      "signal": "5054",
+      "n_routes_from": 8
+    },
+    {
+      "signal": "5053",
+      "n_routes_from": 7
+    },
+    {
+      "signal": "5484",
+      "n_routes_from": 6
+    },
+    {
+      "signal": "5491",
+      "n_routes_from": 6
+    },
+    {
+      "signal": "5078",
+      "n_routes_from": 6
+    }
+  ],
+  "top10_most_shared_tracks": [
+    {
+      "track_id": "TFDU",
+      "n_routes": 42
+    },
+    {
+      "track_id": "TEDC",
+      "n_routes": 40
+    },
+    {
+      "track_id": "TDCB",
+      "n_routes": 36
+    },
+    {
+      "track_id": "TEDB",
+      "n_routes": 32
+    },
+    {
+      "track_id": "TRKA",
+      "n_routes": 32
+    },
+    {
+      "track_id": "TFDS",
+      "n_routes": 30
+    },
+    {
+      "track_id": "TDCF",
+      "n_routes": 30
+    },
+    {
+      "track_id": "TNGM",
+      "n_routes": 27
+    },
+    {
+      "track_id": "TFDR",
+      "n_routes": 26
+    },
+    {
+      "track_id": "TRKC",
+      "n_routes": 26
+    }
+  ]
+}

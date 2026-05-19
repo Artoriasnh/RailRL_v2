@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Test caches
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Data — raw inputs are LARGE; tracked separately, not in git
+data/raw/TD_data.csv
+data/raw/Movements.csv
+
+# Outputs — generated artefacts, regenerable from scripts
+# Keep outputs/ structure for downstream code, but don't commit big parquet
+outputs/**/*.parquet
+outputs/**/*.png
+outputs/cache/
+
+# But DO commit small JSON summaries and markdown reports
+!outputs/**/*.json
+!outputs/**/*.md
+
+# Legacy v1 archive — read-only reference
+outputs/_legacy_v1_binary/**/*.parquet
+outputs/_legacy_v1_binary/**/*.pt
+outputs/_legacy_v1_binary/**/*.npz
+
+# Generated docs
+docs/_build/
+
+# OS
+Thumbs.db
+*.lnk

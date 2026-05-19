@@ -1,0 +1,40 @@
+{
+  "n_panel_requests_analysed": 546111,
+  "n_with_zero_occupied_tcs": 519998,
+  "pct_with_zero_occupied_tcs": 95.22,
+  "n_with_occupation_by_focal_only": 8695,
+  "n_with_occupation_by_other": 11972,
+  "pct_with_occupation_by_other": 2.19,
+  "occupied_pos_distribution": {
+    "end": 9635,
+    "start": 3275,
+    "late": 1178,
+    "mid": 596,
+    "early": 205
+  },
+  "occupation_age_seconds_describe": {
+    "count": 14889.0,
+    "mean": 3113.200349251125,
+    "std": 76001.64085266877,
+    "min": 0.0,
+    "10%": 6.0,
+    "25%": 9.0,
+    "50%": 18.0,
+    "75%": 137.0,
+    "90%": 653.2000000000007,
+    "99%": 3532.6799999999603,
+    "max": 3684942.0
+  },
+  "top10_violating_routes": {
+    "RTD5040A(M)": 3296,
+    "RTD5045A(C)": 719,
+    "RDC5064A(M)": 697,
+    "RDC5065A(M)": 657,
+    "RTD5043A(S)": 568,
+    "REC5475E(M)": 524,
+    "REC5481A(S)": 431,
+    "RDC5087A(M)": 430,
+    "RTD5037A(M)": 389,
+    "RDW5319C(M)": 361
+  }
+}

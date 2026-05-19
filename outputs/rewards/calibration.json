@@ -1,0 +1,42 @@
+{
+  "headway": {
+    "n_pairs": 3284641,
+    "percentiles": {
+      "p1": 91.0,
+      "p5": 147.0,
+      "p10": 206.0,
+      "p50": 852.0,
+      "p90": 2940.0,
+      "p99": 21517.0
+    },
+    "H_min_seconds_used": 147.0,
+    "percentile_used": 5
+  },
+  "approach_distance": {
+    "n_decisions_sampled": 50000,
+    "n_with_distance": 24870,
+    "percentiles": {
+      "p10": 1.0,
+      "p50": 6.0,
+      "p90": 16.0,
+      "p95": 18.0,
+      "p99": 23.0
+    },
+    "d_gate_breakpoints": {
+      "gate_1.0_max": 2,
+      "gate_0.5_max": 6,
+      "gate_0.1_max": 16
+    }
+  },
+  "tiploc_lag": {
+    "n_lags": 42806,
+    "percentiles": {
+      "p50": 228.0,
+      "p90": 3756.0,
+      "p95": 3864.0,
+      "p99": 4201.949999999997
+    },
+    "window_seconds_used": 4201.949999999997,
+    "percentile_used": 99
+  }
+}

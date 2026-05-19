@@ -1,0 +1,114 @@
+{
+  "n_total_pr": 546418,
+  "n_non_standard_pr": 2807,
+  "pct_non_standard": 0.514,
+  "prefix_distribution_overall": {
+    "DC": 35.65,
+    "TD": 26.57,
+    "DW": 22.12,
+    "DY": 10.65,
+    "EC": 5.0
+  },
+  "prefix_distribution_non_standard": {
+    "EC": 29.28,
+    "DC": 24.72,
+    "DW": 20.66,
+    "TD": 18.28,
+    "DY": 7.05
+  },
+  "class_distribution_overall": {
+    "M": 97.04,
+    "S": 2.51,
+    "C": 0.44,
+    "SP": 0.0
+  },
+  "class_distribution_non_standard": {
+    "M": 73.28,
+    "S": 25.65,
+    "C": 1.07
+  },
+  "top20_id_formats": {
+    "****": 202,
+    "PARK": 136,
+    "OSOO": 94,
+    "FANI": 42,
+    "SHNT": 34,
+    "F*I*": 30,
+    "*FNI": 27,
+    "*PK*": 23,
+    "F**I": 22,
+    "WAGS": 17,
+    "224C": 17,
+    "077F": 16,
+    "226C": 16,
+    "221C": 15,
+    "517Y": 15,
+    "*FI*": 15,
+    "636C": 14,
+    "017J": 14,
+    "BYPS": 14,
+    "633R": 13
+  },
+  "top10_signals_by_non_standard_fraction": [
+    {
+      "signal_id": "EC-5474",
+      "total_pr": 459,
+      "ns_pr": 91.0,
+      "ns_pct": 19.83
+    },
+    {
+      "signal_id": "DW-5329",
+      "total_pr": 157,
+      "ns_pr": 14.0,
+      "ns_pct": 8.92
+    },
+    {
+      "signal_id": "EC-5493",
+      "total_pr": 577,
+      "ns_pr": 51.0,
+      "ns_pct": 8.84
+    },
+    {
+      "signal_id": "EC-5483",
+      "total_pr": 994,
+      "ns_pr": 84.0,
+      "ns_pct": 8.45
+    },
+    {
+      "signal_id": "TD-5049",
+      "total_pr": 573,
+      "ns_pr": 38.0,
+      "ns_pct": 6.63
+    },
+    {
+      "signal_id": "EC-5489",
+      "total_pr": 172,
+      "ns_pr": 10.0,
+      "ns_pct": 5.81
+    },
+    {
+      "signal_id": "TD-5043",
+      "total_pr": 727,
+      "ns_pr": 42.0,
+      "ns_pct": 5.78
+    },
+    {
+      "signal_id": "EC-5491",
+      "total_pr": 212,
+      "ns_pr": 12.0,
+      "ns_pct": 5.66
+    },
+    {
+      "signal_id": "EC-5484",
+      "total_pr": 4809,
+      "ns_pr": 241.0,
+      "ns_pct": 5.01
+    },
+    {
+      "signal_id": "EC-5501",
+      "total_pr": 119,
+      "ns_pr": 5.0,
+      "ns_pct": 4.2
+    }
+  ]
+}

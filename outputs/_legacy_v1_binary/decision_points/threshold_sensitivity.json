@@ -1,0 +1,26 @@
+{
+  "30": {
+    "lookahead_seconds": 30,
+    "n_total": 2638150,
+    "n_set": 545289,
+    "n_wait": 2092861,
+    "wait_to_set": 3.84,
+    "set_pct": 20.67
+  },
+  "75": {
+    "lookahead_seconds": 75,
+    "n_total": 2574143,
+    "n_set": 545289,
+    "n_wait": 2028854,
+    "wait_to_set": 3.72,
+    "set_pct": 21.18
+  },
+  "120": {
+    "lookahead_seconds": 120,
+    "n_total": 2545001,
+    "n_set": 545289,
+    "n_wait": 1999712,
+    "wait_to_set": 3.67,
+    "set_pct": 21.43
+  }
+}

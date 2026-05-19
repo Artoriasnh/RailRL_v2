@@ -1,0 +1,73 @@
+{
+  "elapsed_s": 0.33,
+  "nodes": {
+    "track": 249,
+    "signal": 123,
+    "route": 277,
+    "trts": 24
+  },
+  "edges": {
+    "protects": 100,
+    "connects": 548,
+    "traverses": 1701,
+    "starts_at": 279,
+    "ends_at": 290,
+    "same_signal": 1122
+  },
+  "track_source_breakdown": {
+    "both": 225,
+    "routes_only": 24
+  },
+  "platform_coverage": {
+    "tracks_with_platform": 18,
+    "signals_at_platform_end": 12,
+    "routes_ending_at_platform": 72
+  },
+  "physical_features_coverage": {
+    "routes_with_length": 275,
+    "routes_with_speed": 275,
+    "routes_with_gap_time": 275,
+    "routes_with_n_points": 275,
+    "length_m_describe": {
+      "count": 275.0,
+      "mean": 2955.5,
+      "std": 2767.0,
+      "min": 189.3,
+      "25%": 1456.5,
+      "50%": 2308.2,
+      "75%": 3361.2,
+      "max": 15642.7
+    },
+    "ave_speed_mps_describe": {
+      "count": 275.0,
+      "mean": 18.88,
+      "std": 11.97,
+      "min": 3.67,
+      "25%": 10.51,
+      "50%": 14.47,
+      "75%": 27.66,
+      "max": 49.17
+    }
+  },
+  "by_prefix_in_signal_nodes": {
+    "DC": 39,
+    "DW": 24,
+    "EC": 21,
+    "TD": 20,
+    "DY": 19
+  },
+  "sop_cross_check": {
+    "signals_with_routes_from_only": 17,
+    "signals_with_routes_to_only": 11,
+    "signals_with_both": 82,
+    "signals_with_no_routes": 13,
+    "trts_per_platform": {
+      "1": 4,
+      "2": 4,
+      "3": 4,
+      "4": 4,
+      "5": 4,
+      "6": 4
+    }
+  }
+}

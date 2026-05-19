@@ -1,0 +1,50 @@
+{
+  "n_PRs": 546418,
+  "n_with_lead_time": 543328,
+  "n_no_recent_track_event": 3090,
+  "lead_time_seconds": {
+    "P10": 3.0,
+    "P50": 39.0,
+    "P90": 85240.0,
+    "P99": 1726870.46,
+    "max": 28998546.0
+  },
+  "lead_buckets": [
+    {
+      "range": "PR fires AFTER train passed (latency / unusual)",
+      "n": 0,
+      "pct": 0.0
+    },
+    {
+      "range": "0-60s    (immediate, train in approach)",
+      "n": 304505,
+      "pct": 56.0
+    },
+    {
+      "range": "1-10 min (train approaching)",
+      "n": 146274,
+      "pct": 26.9
+    },
+    {
+      "range": "10-30 min (early set, in network)",
+      "n": 15922,
+      "pct": 2.9
+    },
+    {
+      "range": "30 min - 2h (pre-set, before in-network)",
+      "n": 1687,
+      "pct": 0.3
+    },
+    {
+      "range": "> 2h     (way pre-set or stale data)",
+      "n": 74940,
+      "pct": 13.8
+    }
+  ],
+  "batch_PR": {
+    "alone": 20913,
+    "small_burst": 128429,
+    "burst_3_to_9": 375031,
+    "burst_10plus": 22045
+  }
+}

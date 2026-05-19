@@ -1,0 +1,109 @@
+{
+  "B0_random": {
+    "model": "B0_random",
+    "n_decisions": 72554,
+    "n_episodes": 8242,
+    "accuracy": 0.6236,
+    "precision_set": 0.7491,
+    "recall_set": 0.749,
+    "f1_set": 0.7491,
+    "confusion_matrix": [
+      [
+        4480,
+        13654
+      ],
+      [
+        13657,
+        40763
+      ]
+    ],
+    "predicted_set_rate": 0.75,
+    "actual_set_rate": 0.7501,
+    "ep_accuracy_mean": 0.6634,
+    "ep_accuracy_std": 0.2188,
+    "n_episodes_perfect": 1046,
+    "taken_reward_sum": 16742.07,
+    "total_reward_sum": 18421.39,
+    "taken_reward_frac": 0.9088
+  },
+  "B1_BC_MLP": {
+    "model": "B1_BC_MLP",
+    "n_decisions": 72554,
+    "n_episodes": 8242,
+    "accuracy": 0.9269,
+    "precision_set": 0.9391,
+    "recall_set": 0.965,
+    "f1_set": 0.9519,
+    "confusion_matrix": [
+      [
+        14731,
+        3403
+      ],
+      [
+        1902,
+        52518
+      ]
+    ],
+    "predicted_set_rate": 0.7708,
+    "actual_set_rate": 0.7501,
+    "ep_accuracy_mean": 0.932,
+    "ep_accuracy_std": 0.1429,
+    "n_episodes_perfect": 5916,
+    "taken_reward_sum": 18728.84,
+    "total_reward_sum": 18421.39,
+    "taken_reward_frac": 1.0167,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.33006526140137854,
+        "val_acc": 0.9206867118233383
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.19889137010108002,
+        "val_acc": 0.9221047414505203
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.19275637135123036,
+        "val_acc": 0.9229720799603502
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.19095579472770957,
+        "val_acc": 0.9232336582410926
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.190160039609397,
+        "val_acc": 0.9229996145162178
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.19001723953667204,
+        "val_acc": 0.9229720799603502
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.18955065037123672,
+        "val_acc": 0.922985847238284
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.1894656138816524,
+        "val_acc": 0.9231785891293574
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.18909952173472555,
+        "val_acc": 0.9227655707913431
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.18912085711624493,
+        "val_acc": 0.9231510545734898
+      }
+    ],
+    "device": "cuda"
+  }
+}

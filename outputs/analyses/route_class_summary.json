@@ -1,0 +1,120 @@
+{
+  "n_panel_requests": 546418,
+  "n_unique_routes": 247,
+  "minority_routes_count": 51,
+  "majority_routes_count": 67,
+  "minority_top_class_pct_describe": {
+    "count": 51.0,
+    "mean": 68.47288252463753,
+    "std": 21.758220965022506,
+    "min": 24.8,
+    "25%": 55.62582662896143,
+    "50%": 70.79646017699115,
+    "75%": 84.97451580020387,
+    "90%": 94.41964285714286,
+    "max": 99.46524064171123
+  },
+  "majority_top_class_pct_describe": {
+    "count": 67.0,
+    "mean": 68.77425168466695,
+    "std": 17.878914345523878,
+    "min": 24.1869918699187,
+    "25%": 61.91941402008226,
+    "50%": 69.41629860569844,
+    "75%": 82.0134344032875,
+    "90%": 89.63587734428381,
+    "max": 99.02365752910252
+  },
+  "top10_class_concentrated_minority_routes": [
+    {
+      "signal_id": "EC-5475",
+      "letter": "A",
+      "cls": "M",
+      "n": 187,
+      "route_share_pct": 4.175971415810629,
+      "top_class": "5",
+      "top_class_pct": 99.46524064171123
+    },
+    {
+      "signal_id": "DC-5076",
+      "letter": "A",
+      "cls": "M",
+      "n": 395,
+      "route_share_pct": 3.0931871574001564,
+      "top_class": "5",
+      "top_class_pct": 98.73417721518987
+    },
+    {
+      "signal_id": "EC-5475",
+      "letter": "B",
+      "cls": "M",
+      "n": 240,
+      "route_share_pct": 5.359535506922733,
+      "top_class": "5",
+      "top_class_pct": 98.33333333333333
+    },
+    {
+      "signal_id": "DW-5306",
+      "letter": "B",
+      "cls": "C",
+      "n": 738,
+      "route_share_pct": 8.564465591273066,
+      "top_class": "1",
+      "top_class_pct": 95.39295392953929
+    },
+    {
+      "signal_id": "EC-5483",
+      "letter": "B",
+      "cls": "S",
+      "n": 117,
+      "route_share_pct": 11.770623742454728,
+      "top_class": "5",
+      "top_class_pct": 94.87179487179486
+    },
+    {
+      "signal_id": "EC-5488",
+      "letter": "D",
+      "cls": "M",
+      "n": 448,
+      "route_share_pct": 11.127670144063586,
+      "top_class": "5",
+      "top_class_pct": 94.41964285714286
+    },
+    {
+      "signal_id": "EC-5488",
+      "letter": "C",
+      "cls": "M",
+      "n": 669,
+      "route_share_pct": 16.61698956780924,
+      "top_class": "5",
+      "top_class_pct": 93.12406576980567
+    },
+    {
+      "signal_id": "EC-5486",
+      "letter": "D",
+      "cls": "M",
+      "n": 296,
+      "route_share_pct": 9.863378873708765,
+      "top_class": "5",
+      "top_class_pct": 92.22972972972973
+    },
+    {
+      "signal_id": "TD-5045",
+      "letter": "A",
+      "cls": "C",
+      "n": 465,
+      "route_share_pct": 1.6999963440938837,
+      "top_class": "1",
+      "top_class_pct": 91.61290322580645
+    },
+    {
+      "signal_id": "DC-5065",
+      "letter": "C",
+      "cls": "M",
+      "n": 823,
+      "route_share_pct": 8.510858324715615,
+      "top_class": "5",
+      "top_class_pct": 90.76549210206562
+    }
+  ]
+}

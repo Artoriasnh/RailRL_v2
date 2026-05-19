@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "railrl"
+version = "2.0.0"
+description = "End-to-end offline RL for UK railway signaller decisions (Derby workstation, ESWA submission)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Hao", email = "925884246nh@gmail.com" }
+]
+license = { text = "Research-only" }
+keywords = ["offline-rl", "railway-signalling", "heterogeneous-graph", "interpretability", "expert-systems"]
+
+dependencies = [
+    # Data I/O
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+    "numpy>=1.24,<2.5",
+
+    # Modelling
+    "torch>=2.1",
+    "torch-geometric>=2.4",   # HGT + heterogeneous graph ops
+    "transformers>=4.36",      # only if using HF tokenizer/transformers for event stream
+
+    # Evaluation + visualisation
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+    "seaborn>=0.13",
+    "shap>=0.43",              # L2 decision-level explanations
+
+    # Configs + logging
+    "pyyaml>=6.0",
+    "hydra-core>=1.3",
+    "wandb>=0.16",             # optional
+
+    # Utilities
+    "tqdm>=4.65",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+    "black>=23.10",
+    "mypy>=1.7",
+    "ipython>=8.16",
+    "jupyter>=1.0",
+]
+
+irl = [
+    "cvxpy>=1.4",              # MaxEnt-IRL convex optimisation (L5)
+]
+
+[project.scripts]
+# Console entry points (resolved during pip install -e .)
+railrl-inventory      = "railrl.data.inventory:main"
+railrl-decisions      = "railrl.data.decisions:main"
+railrl-infrastructure = "railrl.data.infrastructure:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+railrl = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["outputs", "_legacy_v1_binary", ".venv", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]  # line length
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+extend-exclude = "(outputs|_legacy_v1_binary|.venv|data)"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers"
+markers = [
+    "slow: marks tests as slow",
+    "gpu: marks tests requiring CUDA",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict_optional = true
+warn_unused_ignores = true
+exclude = ["outputs", "_legacy_v1_binary", ".venv", "data"]

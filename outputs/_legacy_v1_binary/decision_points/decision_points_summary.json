@@ -1,0 +1,15 @@
+{
+  "elapsed_s": 17.31,
+  "version": "v2_smdp_pass_aggregation",
+  "n_total": 726978,
+  "n_positives": 545289,
+  "n_negatives": 181689,
+  "neg_pos_ratio": 0.33,
+  "k_hops": 2,
+  "approach_window_forward_s": 600,
+  "n_approach_windows_total": 300584,
+  "n_approach_windows_skipped_already_set": 118895,
+  "n_signals_with_approach": 82,
+  "n_pr_fallback_pass": 14849,
+  "n_cand_fallback_pass": 68341
+}
