@@ -177,12 +177,26 @@ def _extract_wait_triggers(td_events: pd.DataFrame,
         for tc in tcs:
             tc_to_signals.setdefault(tc, []).append(sig)
 
-    # Filter TD events to Track state=1 with non-null trainid_filled
+    # Filter TD events to Track state=1 with VALID trainid_filled.
+    # We filter at trigger time (not just downstream) because:
+    #   1. TD parses can fill trainid_filled with "0" or "" when train id unknown
+    #   2. These garbage IDs cause MASSIVE wait inflation (~1.5M extra waits
+    #      from focal_train="0" alone per Stage 2 diagnostics 2026-05-19)
+    #   3. Real non-standard headcodes (e.g. "343R", 1.04% of data per
+    #      PROJECT_HANDOFF Ch 5.5) ARE preserved — they have ≥3 alphanumeric chars
+    # The f_unusual_id flag handles real non-standard IDs as a feature;
+    # this filter only drops TD-parse-failure placeholders.
+    trainid_str = td_events["trainid_filled"].astype(str)
+    valid_id_mask = (
+        trainid_str.str.match(r"^[0-9A-Z]{3,4}$", na=False)
+        & ~trainid_str.isin({"0", "00", "000", "0000", "NULL", "NONE", "NAN", ""})
+    )
     track_mask = (
         (td_events["type"] == "Track")
         & (td_events["state"] == 1)
         & (td_events["trainid_filled"].notna())
         & (td_events["id"].notna())
+        & valid_id_mask
     )
     track_events = td_events.loc[track_mask, ["time", "id", "trainid_filled"]].copy()
     track_events.columns = ["t", "tc", "focal_train"]

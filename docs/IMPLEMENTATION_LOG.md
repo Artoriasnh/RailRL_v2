@@ -349,6 +349,130 @@ else:
 - ⏳ 待用户跑：`scripts/mdp/01_generate_decision_points.py` (~5-10 min)
 - ⏳ 待用户跑：`scripts/mdp/02_validate_candidates.py` (~30s-2 min)
 
+
+## Stage 2 数据跑通 + 关键发现（2026-05-19 evening 后续）
+
+Stage 2 代码完成后，跑完 `01_generate_decision_points.py` + `02_validate_candidates.py`
+的真实数字，以及关键的领域知识收获。
+
+### 实际跑出的数字（修复后）
+
+第一版（含"0" garbage train_ids）：
+
+| 指标 | 值 |
+|---|---|
+| n_total | 2,093,120 |
+| n_set | 546,418 |
+| n_wait | 1,546,702 |
+| neg_pos_ratio | 2.83 |
+| coverage_pct | **99.646%** ✅ |
+
+加 train_id 过滤后（要求 `^[0-9A-Z]{3,4}$` 且非"0"/"00"等占位符）：
+
+| 指标 | 值 | 评论 |
+|---|---|---|
+| n_total | **1,999,623** | |
+| n_set | 546,418 | 不变 ✓ |
+| n_wait | **1,453,205** | 仅减 93k（6%）|
+| neg_pos_ratio | **2.66** | 比 v1 sample 高 8× |
+| max per-train decisions | **12,727** | 从 91,869 大降，单 train 极端值消失 |
+| coverage_pct | **99.646%** ✅ | 不变 |
+
+### 关键领域知识收获 ⭐⭐⭐
+
+#### KH-1: X-prefix signals 是 signal 前置点（已用 04 脚本确认 + 决策）
+
+**用户 2026-05-19 输入**：
+> "X063等X-prefix signals 都应该是某个 SIGNAL 的前置，比如 X063 是 5063 的前置。"
+
+**04_diagnose_x_signals.py 跑出来**：
+
+- **8 个 X-prefix signals**，全部在 wait 样本里（**0 个 set**） — 信号员永不在 X063 按按钮
+- 总占比 81,040 wait（约 5.5% of all wait）
+- 映射规则：`X{nnn} ↔ 5{nnn}`（首字符 X 替换 5）
+
+| X-prefix | Main signal | wait count |
+|---|---|---|
+| X056 | 5056 | 14,487 |
+| X054 | 5054 | 13,910 |
+| X484 | 5484 | 12,890 |
+| X064 | 5064 | 12,434 |
+| X065 | 5065 | 11,967 |
+| X061 | 5061 | 6,369 |
+| X063 | 5063 | 6,050 |
+| X480 | 5480 | 2,933 |
+
+**LOCKED 决策（2026-05-19）：(A) Keep separate**
+
+- X063 和 5063 在 `focal_signal` 列里**保持独立**，不 merge
+- 理由：5.5% 占比非主导但非边缘；包含"早期接近"时序信号；spec 02 §17.5 已规定 focal_signal 是 metadata 不进 state，所以 leak 风险 zero
+- 候选 mask 自动正确（action.py 从 train.current_tc 做 BFS，不依赖 focal_signal 名字）
+
+**遗留诊断 bug 记录**：
+
+- `04_diagnose_x_signals.py` 的 Q1/Q4 检测 X-prefix 时用 `isinstance(v, (list, tuple))`
+  漏判了 numpy.ndarray（routes_clean.end_signals 实际是 numpy 数组）
+- 报告 "X-prefix in end_signals: 0" 是误报；实际 trigger.py 用 `for s in sigs:` 直接迭代正确处理 numpy
+- **生产代码 OK，diagnostic 报告字段有 false negative**——下次重写 04 时修
+
+#### KH-2: 5063/5053 是站台繁忙信号 — 高 wait 数合法
+
+- 5063、5053 是 Derby 站台上的主信号
+- 每天数百次列车进 approach 但未立即按 PR → 大量合法 wait
+- 1.45M wait（neg_pos_ratio=2.66）**很可能是合理的真实数字**，不是 bug
+
+#### KH-3: v1 sample 的 0.33 比率不能直接外推
+
+- v1 用的是 5M 行 TD sample（占 11.91M 的 ~42%）+ 较短时间窗
+- v2 是 14 个月全量数据
+- v2 的 wait 比率高 ≠ v2 有 bug；只是 v1 sample 量小 + Derby 真的有很多 wait
+
+### Spec 02 §2.3 的 trigger 算法**不改**
+
+讨论后决定：**保持当前算法**（每 (T, S) 进 approach 内 30s dedup）。
+
+不加 per-pass dedup 的理由：
+- 一次 pass 内同 train 多次进同 signal 的 approach 是合法操作模式
+- 缩 wait 数不该靠改 trigger 逻辑，而该靠**训练时 stratified sampling**
+- spec 04 §4.4 已经设计了"每 batch 至少 50 trivial + 20 个 non-trivial stratum"
+
+### Stage 2 修订总结表（含本次）
+
+| ID | 文件 | 症状 | 根因 | 修复 |
+|---|---|---|---|---|
+| BUG-S2-1 | trigger.py | k=0 返回全部 TCs | `tcs[-0:]` 切片陷阱 | `if k <= 0: tail = []` |
+| BUG-S2-2 | trigger.py | NameError per_train | Edit 截断丢行 | bash heredoc 重写 |
+| BUG-S2-3 | config.py | TD_PARQUET 丢失 | Edit 截断丢行 | Edit 补 + 用户清 pyc |
+| **FIX-S2-4** | **trigger.py** | **wait 1.5M 过多** | **TD parse 失败时 trainid="0" 占位符大量触发** | **`valid_id_mask` 过滤非标 IDs** |
+| KH-1 | (insight) | X063 出现在 focal_signal | X-prefix = signal 前置点（用户领域知识）| 写 04_diagnose_x_signals.py 进一步分析 |
+| KH-2 | (insight) | 5063/5053 wait 极高 | 它们是站台繁忙信号，wait 合法 | 保持当前算法 |
+
+### 已增加的诊断脚本
+
+- `scripts/mdp/03_diagnose_mismatches.py` (167 行) — 候选 mismatch + wait 分布
+- `scripts/mdp/04_diagnose_x_signals.py` (165 行) — X-prefix signals 来源 + 处理建议
+
+### Stage 2 最终交付状态（2026-05-19 evening 第二次更新）
+
+| 文件 | 行数 | 状态 |
+|---|---|---|
+| `src/railrl/mdp/trigger.py` | 352 | ✅ 含 valid_id_mask 过滤 |
+| `src/railrl/mdp/action.py` | 344 | ✅ |
+| `src/railrl/mdp/special_flags.py` | 212 | ✅ |
+| `scripts/mdp/01_generate_decision_points.py` | 135 | ✅ |
+| `scripts/mdp/02_validate_candidates.py` | 102 | ✅ |
+| `scripts/mdp/03_diagnose_mismatches.py` | 167 | ✅ 新增 |
+| `scripts/mdp/04_diagnose_x_signals.py` | 165 | ✅ 新增 |
+| `tests/test_mdp/*` | 411 | ✅ 51 cases pass |
+
+### 给 Stage 3 的输入契约
+
+下游（spec 02 §4 snapshot builder）从 `decision_points_v2.parquet` 读：
+- ~2M 行（546k set + 1.45M wait）
+- 7 列：focal_train, focal_signal, t, label, chosen_route_id, trigger_type, (potentially pass_id)
+- focal_signal **包含一些 X-prefix 值**（待 04 脚本确认）
+- 在 stratified training 中需平衡 set vs wait
+
 ## 更新日志（本文档自身的）
 
 - **2026-05-19** v1.0 — 初版，记录 Stage 0-2 完成状态
