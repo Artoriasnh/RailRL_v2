@@ -165,6 +165,79 @@ def assign_fallback_passes(
     return df.drop(columns=["gap_ns", "new_cluster", "cluster_idx"])
 
 
+def build_pass_intervals(
+    movements_source,
+    buffer_s: float = None,
+) -> pd.DataFrame:
+    """FAST path: one row PER TRUST train_id (= one pass), vectorized.
+
+    This is all that `episode.py::_join_pass_assignments` actually needs — it
+    groups pass_assignments by trainid_filled and matches each decision point's
+    time to a containing [pass_t_first_ns, pass_t_last_ns] interval. So we skip
+    the expensive per-TD-event matching (build_pass_assignments) entirely.
+
+    A "pass" interval = the [min, max] actual_timestamp of one TRUST train_id,
+    widened by ±buffer_s so decision points near the edges still match.
+
+    Args:
+        movements_source: path to Movements .csv/.parquet, OR a DataFrame with
+                          columns ['train_id', 'actual_timestamp'].
+        buffer_s: ± widen each interval; default PASS_LOOKUP_BUFFER_S (30 min).
+
+    Returns columns (matching _join_pass_assignments' expectations):
+        trainid_filled    str    4-char headcode (TRUST id chars [2:6])
+        pass_id           str    full 10-char TRUST train_id
+        pass_t_first_ns   int64  interval start (buffered)
+        pass_t_last_ns    int64  interval end (buffered)
+        pass_source       str    'trust_match'
+
+    NOTE: uses actual_timestamp (not gbtt). Pass assignment is offline IDENTITY
+    metadata (episode boundaries), NOT a state feature, so using actual time is
+    leak-safe per spec 01 §17.5 (the leak audit only scans state_* fields).
+    """
+    if buffer_s is None:
+        buffer_s = C.PASS_LOOKUP_BUFFER_S
+    buffer_ns = int(buffer_s * 1e9)
+
+    if isinstance(movements_source, pd.DataFrame):
+        mv = movements_source[["train_id", "actual_timestamp"]].copy()
+    else:
+        p = Path(movements_source)
+        if p.suffix == ".parquet":
+            mv = pd.read_parquet(p, columns=["train_id", "actual_timestamp"])
+        else:
+            mv = pd.read_csv(p, usecols=["train_id", "actual_timestamp"])
+
+    mv["headcode"] = mv["train_id"].astype(str).str[2:6]
+    mv["actual"] = pd.to_datetime(mv["actual_timestamp"], errors="coerce")
+    mv = mv.dropna(subset=["actual"])
+    mv = mv[mv["headcode"].str.len() == 4]
+    if mv.empty:
+        return pd.DataFrame(columns=[
+            "trainid_filled", "pass_id",
+            "pass_t_first_ns", "pass_t_last_ns", "pass_source",
+        ])
+    mv["actual_ns"] = mv["actual"].astype("int64")
+
+    agg = (
+        mv.groupby("train_id")
+        .agg(
+            pass_t_first_ns=("actual_ns", "min"),
+            pass_t_last_ns=("actual_ns", "max"),
+            trainid_filled=("headcode", "first"),
+        )
+        .reset_index()
+        .rename(columns={"train_id": "pass_id"})
+    )
+    agg["pass_t_first_ns"] = (agg["pass_t_first_ns"] - buffer_ns).astype("int64")
+    agg["pass_t_last_ns"] = (agg["pass_t_last_ns"] + buffer_ns).astype("int64")
+    agg["pass_source"] = "trust_match"
+    return agg[[
+        "trainid_filled", "pass_id",
+        "pass_t_first_ns", "pass_t_last_ns", "pass_source",
+    ]]
+
+
 def build_pass_assignments(
     td_events: pd.DataFrame,
     movements_csv: Path,

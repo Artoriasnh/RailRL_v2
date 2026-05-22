@@ -33,6 +33,19 @@ import pandas as pd
 
 _NS_PER_S = 1_000_000_000
 
+# Platform id range (1-7; platform 7 = Derby pilot line, user domain knowledge
+# 2026-05-20). Imported defensively from config.
+try:
+    from .. import config as _C
+    _MIN_PLATFORM = getattr(_C, "MIN_PLATFORM_ID", 1)
+    _MAX_PLATFORM = getattr(_C, "MAX_PLATFORM_ID", 7)
+except Exception:  # pragma: no cover
+    _MIN_PLATFORM, _MAX_PLATFORM = 1, 7
+
+# Headcode is embedded in the 10-char TRUST train_id at chars [2:6]
+# e.g. "851S49ME28" → "1S49", "771M99ML28" → "1M99". (user domain knowledge)
+_HEADCODE_SLICE = slice(2, 6)
+
 
 # ============================================================
 # Core: per-asset binary-state timeline
@@ -45,6 +58,10 @@ class _StateTimeline:
     states:   np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int8))
     train_ids: list[str] = field(default_factory=list)  # parallel to times_ns
 
+    # Prefix arrays for O(log n) window_stats (built in __post_init__)
+    _cum_occ: np.ndarray = field(default=None, repr=False)  # len n: occupied ns from times[0]→times[i]
+    _cum_chg: np.ndarray = field(default=None, repr=False)  # len n+1: cumulative state-changes
+
     def __post_init__(self):
         # Ensure dtype + sortedness
         if len(self.times_ns) > 0:
@@ -52,6 +69,37 @@ class _StateTimeline:
             self.times_ns = self.times_ns[order]
             self.states   = self.states[order]
             self.train_ids = [self.train_ids[i] for i in order]
+        self._build_prefix()
+
+    def _build_prefix(self):
+        """Precompute prefix sums so window_stats is O(log n), not O(window)."""
+        n = len(self.times_ns)
+        if n == 0:
+            self._cum_occ = np.zeros(0, dtype=np.int64)
+            self._cum_chg = np.zeros(1, dtype=np.int64)
+            return
+        t = self.times_ns.astype(np.int64)
+        s = self.states.astype(np.int64)
+        # occupied time in each segment [times[i], times[i+1]) == (s[i]==1)*dt
+        if n >= 2:
+            seg = (s[:-1] == 1).astype(np.int64) * np.diff(t)
+            self._cum_occ = np.concatenate([[0], np.cumsum(seg)]).astype(np.int64)  # len n
+        else:
+            self._cum_occ = np.zeros(1, dtype=np.int64)
+        # change indicator: chg[i] = s[i] != (s[i-1] if i>=1 else 0)
+        prev = np.concatenate([[0], s[:-1]])
+        chg = (s != prev).astype(np.int64)
+        self._cum_chg = np.concatenate([[0], np.cumsum(chg)]).astype(np.int64)  # len n+1
+
+    def _occupied_until(self, T: int) -> int:
+        """Total state==1 dwell time (ns) from times[0] up to T."""
+        idx = int(np.searchsorted(self.times_ns, T, side="right")) - 1
+        if idx < 0:
+            return 0
+        base = int(self._cum_occ[idx])
+        if int(self.states[idx]) == 1:
+            base += int(T - self.times_ns[idx])
+        return base
 
     def state_at(self, t_ns: int) -> int:
         """Return the most recent state at or before t_ns (0 if no prior event)."""
@@ -104,32 +152,13 @@ class _StateTimeline:
         if window_s <= 0 or len(self.times_ns) == 0:
             return 0.0, 0
         t_start_ns = t_ns - int(window_s * _NS_PER_S)
-        # State at window start
-        start_state = self.state_at(t_start_ns)
-        # Events strictly inside (t_start, t_end]
-        lo = np.searchsorted(self.times_ns, t_start_ns, side="right")
-        hi = np.searchsorted(self.times_ns, t_ns, side="right")
-        if lo >= hi:
-            # No transitions in window
-            return float(start_state), 0
-        # Walk through transitions and accumulate dwell in state 1
-        prev_t = t_start_ns
-        prev_s = start_state
-        dwell_1 = 0
-        n_changes = 0
-        for i in range(lo, hi):
-            cur_t = int(self.times_ns[i])
-            cur_s = int(self.states[i])
-            if cur_s != prev_s:
-                n_changes += 1
-            if prev_s == 1:
-                dwell_1 += cur_t - prev_t
-            prev_t = cur_t
-            prev_s = cur_s
-        # Tail segment [last_event, t_ns]
-        if prev_s == 1:
-            dwell_1 += t_ns - prev_t
         window_ns = t_ns - t_start_ns
+        # Vectorized dwell + change count via prefix arrays (O(log n)).
+        # (Numerically identical to the old per-event loop — see test.)
+        dwell_1 = self._occupied_until(t_ns) - self._occupied_until(t_start_ns)
+        lo = int(np.searchsorted(self.times_ns, t_start_ns, side="right"))
+        hi = int(np.searchsorted(self.times_ns, t_ns, side="right"))
+        n_changes = int(self._cum_chg[hi] - self._cum_chg[lo])
         frac = dwell_1 / window_ns if window_ns > 0 else 0.0
         return float(max(0.0, min(1.0, frac))), int(n_changes)
 
@@ -330,30 +359,66 @@ class MovementsLookup:
     train_to_schedule: dict[str, list[tuple[int, Optional[int], str]]] = field(default_factory=dict)
     # All upcoming events globally, sorted by gbtt_ns: list of (gbtt_ns, train_id, platform, event_type)
     all_events: list[tuple[int, str, Optional[int], str]] = field(default_factory=list)
+    # Precomputed sorted gbtt_ns array (built in __post_init__) so schedule_outlook
+    # doesn't rebuild a 247k-element list on EVERY call (was ~4ms/snapshot).
+    _all_times: np.ndarray = field(default=None, repr=False)
+
+    def __post_init__(self):
+        self._all_times = np.array([e[0] for e in self.all_events], dtype=np.int64)
 
     @classmethod
-    def build(cls, movements: pd.DataFrame) -> "MovementsLookup":
+    def build(cls, movements: pd.DataFrame,
+              train_id_col: str = "auto") -> "MovementsLookup":
+        """Build the lookup, keyed by 4-char headcode (e.g. '1S49').
+
+        Real Movements data has `current_train_id` ~99.9% empty; the headcode
+        lives embedded in the 10-char TRUST `train_id` at chars [2:6]
+        (e.g. '851S49ME28' → '1S49'). We extract that so schedule_outlook
+        keys match TD focal_train headcodes.
+
+        Args:
+            movements: Movements DataFrame.
+            train_id_col: which column to derive headcode from. "auto" picks
+                `train_id` if present (TRUST id → slice [2:6]); else falls back
+                to `current_train_id` used verbatim.
+        """
         if movements is None or movements.empty:
             return cls()
         df = movements.copy()
-        # Required columns
-        for col in ("gbtt_timestamp", "current_train_id", "platform", "event_type"):
-            if col not in df.columns:
-                return cls()  # malformed schema → empty lookup
-        df = df.dropna(subset=["gbtt_timestamp", "current_train_id"])
+        if "gbtt_timestamp" not in df.columns or "platform" not in df.columns \
+                or "event_type" not in df.columns:
+            return cls()  # malformed schema → empty lookup
+
+        # --- Derive the headcode column ---
+        use_col = train_id_col
+        if use_col == "auto":
+            use_col = "train_id" if "train_id" in df.columns else "current_train_id"
+        if use_col not in df.columns:
+            return cls()
+
+        if use_col == "train_id":
+            # TRUST id → headcode at [2:6]
+            raw = df[use_col].astype("string")
+            headcodes = raw.str.slice(_HEADCODE_SLICE.start, _HEADCODE_SLICE.stop)
+        else:
+            headcodes = df[use_col].astype("string")
+        df["__headcode"] = headcodes
+
+        df = df.dropna(subset=["gbtt_timestamp", "__headcode"])
         if df.empty:
             return cls()
         # Cast gbtt to int64 ns
         gbtt = pd.to_datetime(df["gbtt_timestamp"], errors="coerce")
         df = df[gbtt.notna()].copy()
         df["__gbtt_ns"] = gbtt.dropna().astype("int64").to_numpy()
-        # Parse platform → int 1-6 or None
+
+        # Parse platform → int MIN..MAX or None
         def _parse_plat(v):
             if pd.isna(v):
                 return None
             try:
                 iv = int(float(v))
-                if 1 <= iv <= 6:
+                if _MIN_PLATFORM <= iv <= _MAX_PLATFORM:
                     return iv
             except (TypeError, ValueError):
                 pass
@@ -363,27 +428,27 @@ class MovementsLookup:
         # `int(3) | None` into `3.0 | nan`. We need true ints + None.
         platforms = [_parse_plat(v) for v in df["platform"]]
         events = df["event_type"].astype(str).tolist()
-        trains = df["current_train_id"].astype(str).tolist()
+        trains = df["__headcode"].astype(str).tolist()
         gbtt_ns = df["__gbtt_ns"].tolist()
 
-        # Per-train index
+        # Per-train (headcode) index
         t2s: dict[str, list[tuple[int, Optional[int], str]]] = {}
         all_ev = []
         for g, tr, p, e in zip(gbtt_ns, trains, platforms, events):
             tr_s = str(tr).strip()
-            if not tr_s or tr_s in ("nan", "None", "0"):
+            if not tr_s or tr_s in ("nan", "None", "0", "<NA>"):
                 continue
             # Defensive: ensure p is `None` or pure `int` (never numpy/float/nan).
             # pandas series iteration can yield numpy.int64 + None which the
             # final `Series.tolist()` would coerce to float64; storing as plain
-            # int here keeps the leak audit Check 4 (planned_platform must be
-            # int 1-6 or None) happy.
+            # int here keeps leak audit Check 4 (planned_platform int 1-7 or
+            # None) happy.
             if p is None or (isinstance(p, float) and np.isnan(p)):
                 p_norm: Optional[int] = None
             else:
                 try:
                     p_norm = int(p)
-                    if not (1 <= p_norm <= 6):
+                    if not (_MIN_PLATFORM <= p_norm <= _MAX_PLATFORM):
                         p_norm = None
                 except (TypeError, ValueError):
                     p_norm = None
@@ -405,9 +470,10 @@ class MovementsLookup:
         if not self.all_events:
             return []
         t_end_ns = t_ns + int(lookahead_s * _NS_PER_S)
-        times = [e[0] for e in self.all_events]
-        lo = bisect.bisect_right(times, t_ns)
-        hi = bisect.bisect_right(times, t_end_ns)
+        # Use the precomputed sorted times array (np.searchsorted) instead of
+        # rebuilding a 247k-element list every call.
+        lo = int(np.searchsorted(self._all_times, t_ns, side="right"))
+        hi = int(np.searchsorted(self._all_times, t_end_ns, side="right"))
         out = []
         for i in range(lo, hi):
             g, tr, p, e = self.all_events[i]
@@ -494,28 +560,37 @@ class EventTokenStream:
         Each tuple: (asset_idx, state, time_delta_s).
         asset_idx is the position in `asset_keys` (not a global asset_index).
         """
-        candidates: list[tuple[int, int, int]] = []  # (time_ns, asset_idx, state)
+        # Vectorized: per asset take the last ≤k events (numpy slice, no Python
+        # per-element loop), concatenate, then argpartition for global top-k.
+        # The old per-element int() loop over ~25k candidates was ~9ms/call.
+        c_times: list = []
+        c_idx: list = []
+        c_states: list = []
         for idx, key in enumerate(asset_keys):
             times = self.per_asset_times.get(str(key))
             if times is None or len(times) == 0:
                 continue
-            states = self.per_asset_states[str(key)]
-            # Events with time <= t_ns
-            hi = np.searchsorted(times, t_ns, side="right")
+            hi = int(np.searchsorted(times, t_ns, side="right"))
             if hi == 0:
                 continue
-            # Take up to k from this asset (saves work; we'll trim globally)
             lo = max(0, hi - k)
-            for i in range(hi - 1, lo - 1, -1):
-                candidates.append((int(times[i]), idx, int(states[i])))
-                if hi - i >= k:
-                    break
-        if not candidates:
+            c_times.append(times[lo:hi])
+            c_states.append(self.per_asset_states[str(key)][lo:hi])
+            c_idx.append(np.full(hi - lo, idx, dtype=np.int32))
+        if not c_times:
             return []
-        # Sort by time descending (most recent first)
-        candidates.sort(key=lambda x: -x[0])
-        out = []
-        for tns, aidx, st in candidates[:k]:
-            delta_s = max(0.0, (t_ns - tns) / _NS_PER_S)
-            out.append((aidx, st, float(delta_s)))
-        return out
+        all_t = np.concatenate(c_times)
+        all_s = np.concatenate(c_states)
+        all_i = np.concatenate(c_idx)
+        # Global top-k most recent (largest time). argpartition is O(n).
+        if all_t.shape[0] > k:
+            part = np.argpartition(all_t, -k)[-k:]
+            order = part[np.argsort(all_t[part])[::-1]]
+        else:
+            order = np.argsort(all_t)[::-1]
+        sel_t = all_t[order]
+        sel_i = all_i[order]
+        sel_s = all_s[order]
+        delta = np.maximum(0.0, (t_ns - sel_t).astype(np.float64) / _NS_PER_S)
+        return [(int(sel_i[j]), int(sel_s[j]), float(delta[j]))
+                for j in range(order.shape[0])]

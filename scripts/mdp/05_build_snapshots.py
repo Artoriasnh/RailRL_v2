@@ -38,6 +38,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 # Allow running as script
@@ -60,6 +61,12 @@ def _parse_args():
                          "(otherwise audit_passed=None for un-audited rows)")
     p.add_argument("--out", type=str, default=None,
                     help="Override output parquet path")
+    p.add_argument("--batch-size", type=int, default=5000,
+                    help="Flush every N snapshots to keep memory constant (default 5000)")
+    p.add_argument("--shard", type=int, default=0,
+                    help="This shard's index (0-based) when running in parallel")
+    p.add_argument("--nshards", type=int, default=1,
+                    help="Total number of shards (strided split). >1 → writes a .partK file")
     return p.parse_args()
 
 
@@ -95,20 +102,36 @@ def main():
     td = pd.read_parquet(C.TD_PARQUET)
     print(f"      {len(td):,} TD events")
 
-    print(f"[3/6] loading Movements... ({C.MOVEMENTS_PARQUET})")
-    if Path(C.MOVEMENTS_PARQUET).exists():
-        mv = pd.read_parquet(C.MOVEMENTS_PARQUET)
+    print(f"[3/6] loading Movements... (auto-cache from {C.MOVEMENTS_CSV})")
+    # load_movements() reads movements.parquet if cached, else converts the
+    # raw Movements.csv (50 MB) and caches it. MovementsLookup derives the
+    # headcode from the TRUST train_id column (current_train_id is ~99.9% empty).
+    if Path(C.MOVEMENTS_PARQUET).exists() or Path(C.MOVEMENTS_CSV).exists():
+        from railrl.data_io import load_movements
+        mv = load_movements()
         print(f"      {len(mv):,} movement rows")
     else:
-        print("      [warn] not found — schedule_outlook will be empty")
+        print("      [warn] no Movements parquet OR csv — schedule_outlook will be empty")
         mv = None
 
-    # 2. Episode metadata
+    # 2. Episode metadata (on the FULL dp so episode_idx is globally consistent
+    #    across shards — every worker computes the SAME deterministic mapping).
     print(f"[4/6] building episode metadata...")
     pass_df = _load_pass_assignments()
     dp = build_episodes(dp, pass_assignments=pass_df)
+    dp = dp.reset_index(drop=True)
+    dp["sample_id"] = np.arange(len(dp), dtype=np.int64)  # GLOBAL id (pre-shard)
     print(f"      {dp['episode_idx'].nunique():,} episodes / "
           f"{dp['pass_id'].nunique():,} passes")
+
+    # 2b. Shard split (strided so each shard mixes degenerate/rich → balanced)
+    if args.nshards > 1:
+        dp = dp.iloc[args.shard::args.nshards].copy()
+        stem = out_path.with_suffix("")
+        out_path = Path(f"{stem}.part{args.shard}.parquet")
+        skipped_path = out_path.parent / f"skipped_no_tc.part{args.shard}.jsonl"
+        summary_path = out_path.parent / f"snapshots_v2_summary.part{args.shard}.json"
+        print(f"      shard {args.shard}/{args.nshards}: {len(dp):,} decisions → {out_path.name}")
 
     # 3. Snapshot builder
     print(f"[5/6] constructing SnapshotBuilder (loads histories)...")
@@ -117,9 +140,22 @@ def main():
     if not args.dev:
         sb.run_leak_audit = False  # will audit every N below
 
-    # 4. Loop
-    print(f"[6/6] building {len(dp):,} snapshots...")
-    rows = []
+    # 4. Loop (streaming write — keep memory constant)
+    print(f"[6/6] building {len(dp):,} snapshots "
+          f"(streaming: flush every {args.batch_size:,} rows)...")
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    from railrl.mdp.schema import get_arrow_schema
+
+    # FIXED explicit schema for EVERY batch. Without this, per-batch inference
+    # gives an all-None nullable field (e.g. nested planned_platform) the
+    # `null` arrow type in batch 1, then crashes ("cast int64 to null") when a
+    # later batch has real ints. from_pylist(schema=...) also ignores extra
+    # dict keys (the redundant 'center') and fills missing keys with null.
+    ARROW_SCHEMA = get_arrow_schema()
+
+    batch: list[dict] = []
+    writer: "pq.ParquetWriter | None" = None
     skipped = []
     audit_failures = []
     n_audited = 0
@@ -127,42 +163,65 @@ def main():
     t_loop_start = time.time()
     log_every = max(1000, len(dp) // 50)
 
-    for sample_id, (_, dec) in enumerate(dp.iterrows()):
-        try:
-            run_audit = args.dev or (sample_id % args.audit_every == 0)
-            sb.run_leak_audit = run_audit
-            decision_dict = dec.to_dict()
-            snap = sb.build_snapshot(decision_dict, sample_id=sample_id)
-        except LeakAuditError as e:
-            audit_failures.append({"sample_id": sample_id, "error": str(e)})
-            if args.dev:
-                print(f"[LEAK] sample_id={sample_id} {e}")
-            continue
-        if snap is None:
-            skipped.append({
-                "sample_id": sample_id,
-                "focal_train": dec.get("focal_train"),
-                "t": str(dec.get("t")),
-                "reason": "no_current_tc",
-            })
-            continue
-        if run_audit:
-            n_audited += 1
-        n_built += 1
-        rows.append(snap)
-        if n_built % log_every == 0:
-            elapsed = time.time() - t_loop_start
-            rate = n_built / max(elapsed, 0.001)
-            eta = (len(dp) - sample_id) / max(rate, 0.001)
-            print(f"  ... {n_built:,}/{len(dp):,} built  "
-                  f"skip={len(skipped):,}  audit_fail={len(audit_failures):,}  "
-                  f"{rate:.1f}/s  ETA {eta/60:.1f}min")
+    def _flush(batch_list: list[dict]) -> None:
+        """Convert a list of snapshot dicts to a parquet row group and clear."""
+        nonlocal writer
+        if not batch_list:
+            return
+        table = pa.Table.from_pylist(batch_list, schema=ARROW_SCHEMA)
+        if writer is None:
+            writer = pq.ParquetWriter(out_path, ARROW_SCHEMA, compression="zstd")
+        writer.write_table(table)
+        batch_list.clear()
 
-    # 5. Output
+    n_total = len(dp)
+    try:
+        for processed, (_, dec) in enumerate(dp.iterrows()):
+            sample_id = int(dec["sample_id"])   # GLOBAL id (consistent across shards)
+            try:
+                run_audit = args.dev or (sample_id % args.audit_every == 0)
+                sb.run_leak_audit = run_audit
+                decision_dict = dec.to_dict()
+                snap = sb.build_snapshot(decision_dict, sample_id=sample_id)
+            except LeakAuditError as e:
+                audit_failures.append({"sample_id": sample_id, "error": str(e)})
+                if args.dev:
+                    print(f"[LEAK] sample_id={sample_id} {e}")
+                continue
+            if snap is None:
+                skipped.append({
+                    "sample_id": sample_id,
+                    "focal_train": dec.get("focal_train"),
+                    "t": str(dec.get("t")),
+                    "reason": "no_current_tc",
+                })
+                continue
+            if run_audit:
+                n_audited += 1
+            n_built += 1
+            batch.append(snap)
+
+            # Flush a full batch
+            if len(batch) >= args.batch_size:
+                _flush(batch)
+
+            if n_built % log_every == 0:
+                elapsed = time.time() - t_loop_start
+                rate = n_built / max(elapsed, 0.001)
+                eta = (n_total - processed) / max(rate, 0.001)
+                print(f"  ... {n_built:,}/{n_total:,} built  "
+                      f"skip={len(skipped):,}  audit_fail={len(audit_failures):,}  "
+                      f"{rate:.1f}/s  ETA {eta/60:.1f}min")
+
+        # Final partial batch
+        if batch:
+            _flush(batch)
+    finally:
+        if writer is not None:
+            writer.close()
+
     print(f"\n[write] {out_path}")
-    df_out = pd.DataFrame(rows)
-    df_out.to_parquet(out_path, index=False)
-    print(f"        {len(df_out):,} snapshots written")
+    print(f"        {n_built:,} snapshots written (streamed)")
 
     if skipped:
         with open(skipped_path, "w") as f:
@@ -198,3 +257,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# end of 05_build_snapshots.py (supports --shard/--nshards for parallel build)

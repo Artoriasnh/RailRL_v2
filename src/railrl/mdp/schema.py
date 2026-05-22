@@ -262,6 +262,7 @@ def get_arrow_schema():
         pa.field("headcode_class", pa.string()),
         pa.field("eta_s", pa.int32()),
         pa.field("planned_platform", pa.int32()),
+        pa.field("event_type", pa.string()),   # ARRIVAL / DEPARTURE (gbtt)
     ])
     outlook_field = pa.field("state_schedule_outlook", pa.list_(outlook_struct))
 

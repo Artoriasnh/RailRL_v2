@@ -30,8 +30,8 @@
 | Stage 0 | Spec 锁定（5 份） | ✅ done | 2026-05-19 | n/a |
 | Stage 1 | 数据 pipeline 验证 + 环境 setup | ✅ done | 2026-05-19 | spec 01 |
 | **Stage 2** | **决策点 + 候选动作 + 8 特殊性 flag** | ✅ **done** | **2026-05-19** | spec 02 §2-§4.10 |
-| Stage 3 | 新 snapshot builder (state + leak audit + episodes) | ⏳ next | — | spec 02 §4-§8 |
-| Stage 4 | 主模型（HGT + Transformer + Q + 2 aux heads + CQL） | ⏳ pending | — | spec 03 + 04 |
+| Stage 3 | 新 snapshot builder (state + leak audit + episodes) | ✅ done | 2026-05-20 | spec 02 §4-§8 |
+| Stage 4 | 主模型（HGT + Transformer + Q + 2 aux heads + CQL） | ⏳ next | — | spec 03 + 04 |
 | Stage 5 | Sanity 训练 50k subset | ⏳ pending | — | spec 04 §11 |
 | Stage 6 | 全数据训练 3 seeds | ⏳ pending | — | spec 04 §10 |
 | Stage 7 | Baselines (B0/B0'/B1/BC) | ⏳ pending | — | spec 04 §1.3 |
@@ -477,3 +477,299 @@ Stage 2 代码完成后，跑完 `01_generate_decision_points.py` + `02_validate
 
 - **2026-05-19** v1.0 — 初版，记录 Stage 0-2 完成状态
 - 未来 Stage 完成时在末尾追加新 section（不删旧记录）
+
+
+---
+
+## Stage 3 — MDP snapshot builder (2026-05-19 → 2026-05-20)
+
+### 完成范围
+
+5 个 module + 3 个 round 的迭代，最终能从 (decision_points + TD + Movements + static_graph) 端到端构造一个通过 leak audit 的 snapshot。
+
+### Round 1 — 基础设施（episode + schema + leak_audit）
+
+| 文件 | 行数 | 内容 |
+|---|---|---|
+| `src/railrl/mdp/episode.py` | 203 | build_episodes / _assign_pass_by_gap / episode_returns(γ=0.95) / summarize |
+| `src/railrl/mdp/leak_audit.py` | 295 | 32 BANNED_STATE_FIELDS + assert_no_leak (7 checks) + collect_violations |
+| `src/railrl/mdp/schema.py` | 355 | 45 ALL_COLS = 14 identity + 14 reward + 4 node + 8 edge + 5 other + arrow_schema + validate_row |
+| `tests/test_mdp/test_episode.py` | 109 | 9 cases |
+| `tests/test_mdp/test_leak_audit.py` | 167 | 22 cases (7 checks parametrized) |
+| `tests/test_mdp/test_schema.py` | 82 | 9 cases |
+
+### Round 2 — 中层组件（pass_assignment + state_helpers + state skeleton）
+
+| 文件 | 行数 | 内容 |
+|---|---|---|
+| `src/railrl/mdp/pass_assignment.py` | 247 | TRUST id matching + fallback gap-based + summarize |
+| `src/railrl/mdp/state_helpers.py` | 239 | TrainStateLookup (current_tc/recent_tcs/berth) + SubgraphExtractor (3-hop BFS + filter_edges) |
+| `src/railrl/mdp/state.py` (v1) | 471 | SnapshotBuilder skeleton with placeholders |
+
+测试结果：**51 + 41 = 92 cases pass** (Stage 2 + 3 R2)。
+
+### Round 3 — 完整实现（per-window aggregates + K=256 + schedule_outlook + dynamic edges + multi-train）
+
+| 文件 | 行数 | 新增 |
+|---|---|---|
+| `src/railrl/mdp/state_history.py` | 521 | _StateTimeline + TrackOccupancyHistory + SignalAspectHistory + BerthHistory + MovementsLookup + EventTokenStream |
+| `src/railrl/mdp/state.py` (R3) | 724 | 5 个 history wired in，所有 Round 2 placeholder 替换为真实计算 |
+| `scripts/mdp/05_build_snapshots.py` | 200 | 全语料 driver (`--limit N`, `--dev`, `--audit-every`) |
+| `scripts/mdp/06_run_leak_audit_full.py` | 156 | 全语料 leak audit (`--sample N`, `--first-fail`) |
+| `tests/test_mdp/test_state_history.py` | 282 | 15 cases |
+
+**最终测试结果：~108 cases pass**。
+
+### Round 3 关键设计决策
+
+- **时间窗口聚合算法**：每 asset 用 (time_ns, state) 数组 + `np.searchsorted` 二分查找。窗口 W 内：`start_state = state_at(t_start)`, 逐 transition 累加 state=1 的 dwell，最后 / window_ns。O(log n + transitions_in_window) per query。
+- **K=256 event token**：按全局 time descending 排序，取 top-256，每个 token = (asset_idx in subgraph, state, time_delta_s)。Asset_idx 是 subgraph 内 [track_keys + signal_keys] 的位置，下游 encoder 用它索引 node embedding。
+- **schedule_outlook 防泄露**：MovementsLookup 只用 gbtt_timestamp，actual_timestamp 永不出现。`planned_platform` 强制 int 1-6 或 None（绝不返回 signal_id 字符串）。
+- **Dynamic edges**：`at_berth(train→track)` 由 train_lookup.current_tc 推出；`next_signal(train→signal)` 由 BerthHistory 反查得到（哪个 signal 的 berth 当前由这个 train 占用）。
+- **Multi-train state_nodes_train**：从 subgraph 内 tracks 的当前 occupier 收集（去重，排除 focal，按字母序排，cap = MAX_TRAINS_PADDED - 1 = 7）。
+
+### Round 3 修订与陷阱
+
+| ID | 文件 | 症状 | 根因 | 修复 |
+|---|---|---|---|---|
+| BUG-S3-1 | state_history.py | `planned_platform=3.0` 而非 3 | pandas Series mixed int/None 自动 coerce 到 float64 | `_parse_plat` 后再在存储点强制 `int(p)` |
+| BUG-S3-2 | state.py / state_history.py | 多次被 Edit/heredoc 截断（行尾 + 中部）| virtiofs 同步问题；touch 居然也会截断 | 用 `head -N` + `cat >> EOF` 重建，每次后立即 `ast.parse` 验证 |
+| BUG-S3-3 | state.py | `state_center` 在 snapshot dict 但 leak audit 读 `center` | 命名不一致 | snapshot 同时存 `state_center` 和 `center`（向后兼容）|
+| BUG-S3-4 | state.py | 同份代码出现两次（line 712 vs line 725 重复）| 用户/linter 修了一次同时 heredoc 又追加了一次 | `head -724` 截断重写 |
+| KH-3 | (insight) | sandbox pyc 缓存常常导致测试看上去没生效 | virtiofs 上 pyc 的 mtime 跟 py 同步，Python 优先 pyc | 写完 .py 后用 `open(p).write(open(p).read())` 强制更新 mtime |
+
+### Stage 3 端到端验证（合成数据）
+
+输入：2 个 track + 2 个 signal + 1 个 route + 6 条 TD events + 2 行 Movements + 1 个 decision row。
+
+输出（关键字段）：
+- `center: {'type':'track', 'id':'TFBN'}` ✅
+- `audit_passed: True` ✅
+- Per-window aggregates 数值正确（TFBN frac_5m=0.10，TFPJ frac_5m=0.25，signal 5040 red_5m=0.267）
+- `planned_platform=3`（int 非 float）✅
+- Dynamic edges: 2 at_berth + 1 next_signal ✅
+- Multi-train: 1S49 (focal=True) + 2A28 (focal=False) ✅
+- Schedule outlook 排除 focal_train ✅
+
+### 给 Stage 4 的输入契约
+
+下游（model + training）从 `snapshots_v2.parquet` 读取一行约 45 列：
+- **identity (14)**: sample_id, focal_train, focal_signal, t, pass_id, episode_idx, position_in_episode, is_last_in_episode, label, chosen_route_id, chosen_action_idx, candidate_route_ids, n_candidates, trigger_type
+- **reward (14)**: outcome, approach_distance, delay_change_seconds, next_tc_headway_seconds, gate, r_*_raw, r_*, r_total（注意：snapshot 阶段填 NaN，由 decision_rewards.parquet 在训练前 join）
+- **state (4 node lists)**: state_nodes_track / signal / route / train，每个是 list of struct
+- **state edges (8)**: 6 static + 2 dynamic (at_berth, next_signal)
+- **state aux**: state_event_tokens (list of {asset_idx,state,time_delta_s}), state_schedule_outlook, state_special_flags, state_special_flags_meta, state_center
+
+Stage 4 loader 需要把这些 list-of-struct 转成 padded tensors + PyG HeteroData。
+
+### Stage 3 给后续 Stage 的建议
+
+1. **Edit tool 截断仍未根除** — 任何对 `state.py` / `state_history.py` 的修改后必须 `ast.parse + wc -l + tail` 三件套检查。
+2. **pyc 缓存陷阱** — virtiofs 下 .py 修改后 mtime 不变。补救：`open(p,'w').write(open(p).read())` 强制 bump。
+3. **数值类型严格检查** — leak_audit Check 4 要求 planned_platform 是 int。pandas-cast 容易把 int 升级为 float。
+4. **dev/prod audit 比例** — 05 driver 默认每 1000 行 audit 一次；06 driver 做全量。如果性能允许，05 可改成全量 audit + 离线汇总。
+
+---
+
+## Stage 3 Hotfixes（2026-05-20，全量跑 05 时发现）
+
+### Hotfix-1：OOM（rows 列表堆 2M 行）
+
+**症状**：`05_build_snapshots.py` 跑到 ~400k/2M 时 `MemoryError`。
+**根因**：把所有 snapshot dict 累积到一个 Python list 再一次性 `to_parquet`，2M 行 × ~5KB ≈ 20GB。
+**修复**：改成 `pyarrow.parquet.ParquetWriter` 流式写。每 `--batch-size`（默认 5000）行 flush 一个 row group 并 `batch.clear()`。内存稳定在 ~25MB。加了 `try/finally` 保证 writer.close()，schema 不一致时 `table.cast(safe=False)` 兜底。
+
+### Hotfix-2：Movements headcode 提取 + platform 1-7（领域知识）
+
+**症状**：05 报 `[warn] Movements not found — schedule_outlook will be empty`。即便加载了，`current_train_id` 列也 **99.88% 为空**。
+**根因 + 领域知识**：
+- Movements 真正可用的列是 TRUST `train_id`（10 字符，如 `851S49ME28`），headcode 嵌在 `[2:6]`（→ `1S49`）。99.7% 的行匹配 `NXNN` 格式。
+- **platform 7 是 Derby 的 pilot line**（用户领域知识 2026-05-20）：北行从 **EC5487** 发车、南行从 **EC5484** 发车（两信号机方向相反），它们的 TC 分别是 **TECV** 和 **TECS**。所以 platform 7 是合法站台，不是噪声。
+**修复**：
+- `MovementsLookup.build(train_id_col="auto")`：auto 时优先用 `train_id` 切 `[2:6]` 提 headcode，否则回退 `current_train_id`。
+- platform 范围 `1-6 → 1-7`：新增 `config.MIN_PLATFORM_ID=1 / MAX_PLATFORM_ID=7`；`leak_audit.py` Check 4 + `state_history.py` MovementsLookup 都从 config 读这两个常量（defensive import，缺省回退 1/7）。
+- `05_build_snapshots.py` 改用 `data_io.load_movements()`（自动从 `Movements.csv` 缓存 parquet）。
+**验证**（真实 Movements 前 10 万行）：提取出 1280 个 headcode，TD 已知 headcode 全部命中（1S49→plat 1, 1M99→4, 1K69→3, 2A28→4, 2A31→6），platform 分布 `{1:4542, 2:4786, 3:10297, 4:10128, 5:9002, 6:10753, 7:1494}`，platform 7 保留，全部是纯 int。
+
+### Platform 7 物理拓扑（领域知识存档）
+
+| 方向 | 发车信号机 | TC |
+|---|---|---|
+| 北行 (north) | EC5487 | TECV |
+| 南行 (south) | EC5484 | TECS |
+
+（两信号机方向相反；platform 7 = pilot line。后续若需在 static graph 里特别处理 platform 7 的 route/signal 关联，参考此表。）
+
+### TRUST train_id 结构（Table 3.6，ESWA paper §3 — 权威定义存档）
+
+10 字符 TRUST train_id = `[AA][BBBB][C][D][EE]`：
+
+| Part | Component | 长度 | 含义 |
+|---|---|---|---|
+| `[AA]` | Stanox Prefix | 2 | 列车始发区域 |
+| `[BBBB]` | **Headcode** | 4 | **信令 ID（headcode）** ← 与 TD focal_train 匹配的就是这段 |
+| `[C]` | TSPEED | 1 | 列车状态码 |
+| `[D]` | Call Code | 1 | 基于始发出发时间的字母/数字 |
+| `[EE]` | Day Indicator | 2 | 列车始发当月的日期 |
+
+例：`851S49ME28` → AA=`85`, BBBB=`1S49`, C=`M`, D=`E`, EE=`28`。
+
+**这正式确认了 `train_id[2:6]` = BBBB headcode 的提取是正确的**（`MovementsLookup.build` 用的就是 `slice(2,6)`）。
+**重要推论**：headcode 在不同日期 / 不同 Call Code 下会复用（同一个 `1S49` 可能对应多趟车）。`MovementsLookup` 的 schedule_outlook 按时间窗过滤，`planned_platform` 取时间上最近的条目，所以 headcode 复用问题被时间窗口自然处理。但**如果 Stage 4+ 要做精确的 TRUST↔TD pass 对齐，必须用完整 train_id（含 Day Indicator EE）而不是裸 headcode**（这也是 pass_assignment.py 的设计前提）。
+
+### Movements 缓存脚本
+
+新增 `scripts/data/06_cache_movements.py`：一次性把 Movements.csv → movements.parquet（zstd），并打印 headcode/platform/日期诊断。用户 4TB 盘，永久缓存避免每次 re-parse。`load_movements()` 也会在首次调用时自动缓存。
+
+### 环境提示：src-layout 的 import
+
+`railrl` 是 src-layout（包在 `src/railrl/`）。`pyproject.toml` 的 `[tool.pytest.ini_options] pythonpath=["src"]` 让 pytest 自动加 `src/` 到路径，但**裸 `python -c "import railrl"` 不会**，会报 `ModuleNotFoundError`。
+解决：`pip install -e . --no-deps`（注册包，不拉重依赖）；或临时 `$env:PYTHONPATH="src"`（PowerShell）。所有 scripts/ 下脚本自己 `sys.path.insert(0, .../src)`，所以直接 `python scripts/...` 不受影响。
+
+### ⚠️ 重要：本次 hotfix 改动了 leak_audit 的契约
+
+`leak_audit.py` Check 4 的 platform 上限从 6 → 7。意味着**旧的 test_leak_audit 里如果有断言 platform 6 是上界、7 应该失败的用例需要更新**。如果 pytest 报 Check 4 相关失败，检查 `tests/test_mdp/test_leak_audit.py::TestCheck4ScheduleOutlook` 是否有 `planned_platform=7` 应当通过的新语义。（目前的测试用例只测了 99 越界，仍然失败，所以应该不受影响。）
+
+### Hotfix-3：pass_assignments.parquet 缺失 + episode fallback 修正
+
+**症状**：05 在 `[4/6] building episode metadata` 报 `pass_assignments.parquet not found — falling back to gap-based pass_id`，得到 82,858 episodes（gap-based 质量较低）。
+**根因**：Stage 3.4 写了 `pass_assignment.py` 模块但**从没写驱动脚本**生成 `pass_assignments.parquet`。
+
+**修复**：
+1. 新增 `pass_assignment.build_pass_intervals(movements_source)`：**快路径**，一行 per TRUST train_id（向量化 groupby min/max actual_timestamp，±30min buffer）。这正是 `episode.py::_join_pass_assignments` 实际需要的（它按 trainid_filled 分组，把每个 decision 的 t 落到包含它的 interval）。绕开了原 `build_pass_assignments` 对每条 TD 事件 iterrows 的慢路径。输出列：`trainid_filled, pass_id, pass_t_first_ns, pass_t_last_ns, pass_source`。
+2. 新增驱动 `scripts/mdp/00_build_pass_assignments.py`：读 movements.parquet（或 csv）→ build_pass_intervals → 写 `outputs/passes/pass_assignments.parquet` + summary。
+3. **修正 `episode.py::_join_pass_assignments` 的 fallback bug**：原来未匹配 TRUST interval 的 decision 全部塌缩成 `FB:{tid}:0`（一个 train 的所有未匹配 decision 跨 14 个月合并成一个 episode，γ-discount 会算错）。改成对未匹配集合做 **gap-based 聚类**（>PASS_FALLBACK_GAP_S=6h 拆分），每个 fallback episode 时间局部。同时把 matching 从 `df.iterrows()` 换成 `to_numpy()` 索引（200k 行 0.2s，全量 2M ~2s，原来要分钟级）。
+
+**真实数据验证**（200k decision points + 全量 Movements）：
+- TRUST 匹配率 **93.7%**，fallback 6.3%
+- fallback episode 大小：mean=2.8, max=24（不再是 1 个跨月巨型 episode ✓）
+- headcode 缺失 1.1% / 时间不在任何 interval 5.2%
+- join 耗时：200k → 0.2s（全量 2M 估计 ~2s）
+
+**新增测试**：`tests/test_mdp/test_episode.py::TestJoinPassAssignments`（3 cases：interval 内匹配 TRUST、未匹配 gap-cluster 不塌缩、混合）。
+
+### Pass interval 设计要点
+
+- 用 **actual_timestamp**（非 gbtt）定义 pass 时间范围。pass_id/episode 是 IDENTITY metadata（离线 episode 边界），不是 state feature，所以用 actual 时间不违反 spec 01 §17.5 leak 契约（leak audit 只扫 state_* 字段）。
+- merge_asof **不能**用于此匹配：buffered intervals 会嵌套（短 pass 落在长 pass 内），merge_asof 只看「最近开始」的一个 interval 会漏（实测掉到 54%）。必须扫所有 interval 查 containment（iterrows/to_numpy 循环，93.7%）。
+- 运行顺序：先 `00_build_pass_assignments.py`（一次性）→ 再 `05_build_snapshots.py`（自动 join TRUST episodes）。
+
+### Hotfix-4：流式 parquet schema 推断崩溃（ArrowNotImplemented int64→null）
+
+**症状**：05 流式写到某批 `_flush` 报 `pyarrow.lib.ArrowNotImplementedError: Unsupported cast from int64 to null using function cast_null`。
+**根因**：原 `_flush` 用 `pa.Table.from_pandas(df_batch)` **逐批推断** schema。第一批 5000 行里某个 nullable 嵌套字段（如 `state_nodes_train[].planned_platform`）全是 None → pyarrow 推断成 `null` 类型并写进 writer schema；后面某批该字段出现 int → `cast int64 → null` 崩溃。
+**修复**：用 **固定显式 schema**（`schema.get_arrow_schema()`）建 ParquetWriter，每批用 `pa.Table.from_pylist(batch, schema=FIXED)` 写。`from_pylist(schema=...)` 三大好处：(1) 不做逐批推断（消除 null-type 问题）；(2) 自动忽略 dict 里多余的 key（如冗余的 `center`）；(3) 缺失的 key 填 null。
+**连带修复 schedule_outlook 字段对齐**：schema 的 `outlook_struct` 期望 `{train_id, headcode_class, eta_s, planned_platform}`，但 `MovementsLookup.schedule_outlook` 产出 `{train_id, gbtt_delta_s, planned_platform, event_type}`。不对齐的话 from_pylist 会把 eta/headcode_class 填成 null（丢失 ETA 信息）。修法：
+  - schema `outlook_struct` 加 `event_type` 字段（5 字段）。
+  - `state._build_schedule_outlook` 转换成 `{train_id, headcode_class, eta_s(=gbtt_delta_s), planned_platform, event_type}`。
+**验证**（独立脚本，完整 45-field schema + 嵌套 struct + 混合 null/int 批次）：45 列全部正确，batch-2 的 int planned_platform 存活，schedule_outlook 5 字段正确，多余 `center` key 被忽略。
+
+### ⚠️ snapshot dict ↔ schema 对齐契约（Stage 4 reader 必读）
+
+`state.build_snapshot` 产出的 dict 必须与 `schema.get_arrow_schema()` 字段名**逐一对齐**（嵌套 struct 内字段名也是）。已核对全部对齐：identity 14 + reward 14 + 4 node lists + 8 edges + event_tokens + schedule_outlook(5字段) + flags(8) + flags_meta(2) + center = 45 顶层字段。改任何一边都要同步另一边，否则 from_pylist 静默填 null 丢数据。`center` key 是例外（dict 有、schema 无，被 from_pylist 忽略；leak audit 读它）。
+
+---
+
+## 第一次全量 6.58h 跑后的数据审计 + 大返工（2026-05-20）
+
+### 全量跑结果（已废弃，需重跑）
+
+1,999,611 / 1,999,623 built（99.999%），12 skipped，0 audit fails，**23,703s = 6.58h @ 84.9/s**。
+
+**好消息**：schedule_outlook 97.3% 有数据（Movements/headcode/platform-1-7 都对），TRUST episode 100% 命中，流式写稳定。
+
+**两个致命问题（需重建 snapshots）**：
+1. **动作空间为空**：`decision_points_v2.parquet` 只有 6 列，`candidate_route_ids` 在 Stage 2 coverage check 算过但**从没持久化**。所有 snapshot 的 `n_candidates=0`、`in_candidate_set=False`、无 `chosen_action_idx` → 结构化动作 `{wait}∪{(train,R)}` 没有路线可选，RL 根本没法训。
+2. **77.7% 退化子图**：`current_tc` 解析到不在 249-track 路网里的 approach/holding track（`T938`/`TFPW`/`TYWH`），3-hop 子图只剩 1 个孤立 track（0 signal、0 route）。模型对 3/4 的决策几乎看不到任何状态。
+
+（另外发现：`nodes_route.parquet` 没有 `track_sections`，所以 `on_focal_train_path` flag 一直是空的——返工一并修了。）
+
+### 返工 T1-T4（全部完成，已在真实数据/独立脚本验证）
+
+**T1 — `scripts/mdp/01b_enrich_candidates.py`**：对 2M decision 算 `candidates = routes_from(focal_signal)`（spec 02 §3.2 Rule 1，主规则），写回 decision_points。验证：**0.8s/2M**，candidate-set mean=2.72/median=2/max=13，12% wait-only；**99.99% coverage**（chosen 在 routes_from 里），只有 34 条（0.0062%）需 append chosen。动作索引约定锁定：**action 0=wait, 1..K=candidate_route_ids[0..K-1], chosen_action_idx=0(wait) 或 1+idx(set)**。
+
+**T2 — 子图候选种子化**：`SubgraphExtractor.extract(center_tc, seed_routes=...)`，从 current_tc + 候选路线一起 BFS（候选路线扩 `seed_route_hops=2` 层）。中心仍是 current_tc（leak audit Check 1 不变）。验证：退化中心 T938 从 track=1/signal=0/route=0 变成 track=11/signal=3/route=9；全 build_snapshot 端到端测试通过（off-network 中心 + audit pass + on_focal_train_path/in_candidate_set 都对）。新增 `state.route_tracks` map（route_id→ordered track_sections，来自 routes_clean，因 nodes_route 没有）。
+
+**T3 — 向量化 `window_stats`**：`_StateTimeline` 在 `__post_init__` 预算 prefix-sum（occupied-time `_cum_occ` + change-count `_cum_chg`），每次窗口查询 O(log n) 而非 O(window 内事件数)。验证：2000 个随机查询与旧循环**数值完全一致（0 mismatch）**，118k calls/s（与窗口大小无关）。
+
+**T4 — 并行 + sharding**：
+- `05_build_snapshots.py` 加 `--shard K --nshards N`：在 FULL dp 上建 episode（保证 episode_idx 跨 shard 一致）+ 赋全局 `sample_id`，再 strided 切片 `dp.iloc[K::N]`，写 `.partK.parquet`。
+- `scripts/mdp/05b_build_snapshots_parallel.py`：subprocess 起 N 个独立进程（Windows-spawn 安全，无 pickling），完成后流式合并 part 文件 + 汇总 summary/skipped。
+- 验证：strided 切分是完美分区（每行恰好一次，无重叠/缺失）；wrapper AST-OK。每 worker 独立加载 TD+histories，峰值内存 ≈ N×(TD+histories)，`--workers` 建议 4-8。
+
+### 重跑顺序（用户在 Windows 执行）
+
+```
+python scripts/mdp/01b_enrich_candidates.py            # 1) 动作空间写回（~秒级）
+python scripts/mdp/05b_build_snapshots_parallel.py --workers 6   # 2) 并行重建 snapshots
+```
+（先用 `--workers 6 --limit 40000` 跑 smoke 验证，再全量。）
+
+### 待办：snapshots 重建后重新审计
+
+重跑后应看到：n_candidates mean≈2.7、退化子图 ≪77.7%（应降到接近 12% 的纯 wait-only signal）、train_nodes 多于 1 的比例上升、schedule_outlook 仍 97%+。然后跑 `06_run_leak_audit_full.py --sample 10000` 确认 pct_passed=100。
+
+
+---
+
+## 性能返工（2026-05-20，profile 驱动）
+
+第一次返工（T1-T4 候选+种子化）修对了数据，但**子图变丰富后每个 snapshot 慢了 ~12x**。profile_build.py（cProfile，真实数据）定位：
+- **startup 151.8s**：SnapshotBuilder.build_default 从 11.7M TD 事件建 5 个 history（一次性，每 worker 付一次）。用户误读成"300 个要 151s"，其实 300 snaps 只花 7.8s。
+- **每 snapshot 26ms (38.5/s)**，三大热点：
+  1. `_format_edges` iterrows → 每 snapshot 创建 ~187 个 pandas Series（8.7ms）
+  2. `MovementsLookup.schedule_outlook` 每次重建 247k 元素 list（line 326，~4ms）
+  3. `slice_last_k` 最终 256-tuple listcomp（5ms）
+
+**已修（独立脚本验证，0 mismatch）**：
+- **filter_edges/_format_edges**：StaticGraphView 边预计算成 (src,dst,order) tuples（`_ensure_edge_tuples`），filter 用 set 成员判断，`_format_edges` 只 wrap。**55x faster**（3.5ms→0.064ms），返回类型 DataFrame→list[tuple]（仅 build_snapshot 调用，安全）。
+- **schedule_outlook**：`MovementsLookup.__post_init__` 预计算 `_all_times` numpy 数组，用 np.searchsorted。**1454x faster**（3.5ms→0.002ms）。
+- **node caps**：`SubgraphExtractor` 加 cap_track=60/cap_signal=15/cap_route=15（= padding caps，loader 本就截断）。候选路线先种子化所以保留。TFMP 72/29/118→46/15/15，route 工作 8x 少。
+- **slice_last_k**：numpy 化（per-element int() 循环 → 切片+argpartition），9.4→~5ms。
+
+预期：26ms→~12ms/snapshot ≈ 80/s 单进程；6 workers 全量 ~70min build + 一次性 151s setup。
+
+**待确认**：用户重跑 `profile_build.py --n 300` 验证新 rate（应 ~80/s），再全量。若 startup 151s 仍痛，可加 history 磁盘缓存（build 一次，workers load）。
+
+### profile_build.py 关键认知（存档）
+- 151s 是 history 构建（11.7M 事件 → per-asset 查找表），**一次性**，不是 per-snapshot。
+- 子图 node 数直接决定 per-snapshot 成本（window_stats/event tokens/edges 都 scale）。padding caps 必须在 extract 时就 enforce，否则白做被截断的 node 的活。
+
+---
+
+## Stage 3 完成 ✅（2026-05-20）— snapshots_v2.parquet 全量构建 + 审计通过
+
+性能修复后全量重跑：**1,999,611 snapshots / 12 skipped / 0 audit fails / 1992s (33 分钟) / 6 workers**。文件 573 MB（比旧 165MB 大，因为子图现在真正填充了，不再 77.7% 退化）。
+
+### 全量审计结果（采样 253k）
+
+| 指标 | 返工前（坏） | 现在 |
+|---|---|---|
+| 退化子图（1 track） | 77.7% | **8.8%** |
+| n_candidates（动作空间） | 0（空！） | mean **2.70**, max 13, invalid **0** |
+| schedule_outlook 有数据 | — | **94.2%**（7.1% 是 7 天 smoke 切片假象） |
+| 多车 snapshot | 9.9% | **31.4%** |
+| padding caps (60/15/15/8) | 无界(max 98/118) | **全部遵守** |
+| label | — | 27% set / 73% wait（与 Stage 2 一致） |
+| leak 审计 | — | build 内 2000/2000 + 独立 103k 抽查 **全 PASS** |
+
+leak 独立抽查（103k snapshots）：center 永远是 track、每个 snapshot 恰好 1 个 is_focal train、planned_platform 永远 1-7 或 None、state 里 0 个 banned field。
+
+### 这次彻底解决的问题（给后续 stage 的教训）
+
+1. **动作空间必须持久化**：decision_points 原来只有 6 列，candidate_route_ids 算过没存。01b_enrich_candidates.py 补上（routes_from(focal_signal)，99.99% 覆盖）。
+2. **子图必须候选种子化**：current_tc 77.7% 落在路网外的 approach track（T938/TFPW/TYWH）→ 用候选路线 seed BFS。
+3. **padding caps 要在 extract 时 enforce**：否则白建被截断的 node（route 118→15，8x 浪费）。
+4. **per-snapshot 严禁 pandas iterrows / 重建大 list**：filter_edges 预计算 tuple（55x）、schedule_outlook 预计算 times 数组（1454x）。
+5. **子进程 stdout 要 `-u`**：否则 block-buffering 让日志看起来空的、像卡住。
+
+### Stage 3 最终交付文件清单
+
+- `src/railrl/mdp/`: trigger, action, special_flags, episode, leak_audit, schema, pass_assignment, state_helpers, state, state_history（10 模块）
+- `scripts/mdp/`: 00_build_pass_assignments, 01_generate_decision_points, 01b_enrich_candidates, 02_validate_candidates, 03/04_diagnose, 05_build_snapshots, 05b_build_snapshots_parallel, 06_run_leak_audit_full, profile_build
+- `scripts/data/06_cache_movements.py`
+- 输出（不进 git）：`outputs/snapshots/snapshots_v2.parquet` (573MB, 2M 行)
+
+### → 下一步 Stage 4：HGT + Transformer + Q-net + CQL（spec 03 + 04）
+
+snapshots_v2.parquet 是 Stage 4 data loader 的输入。45 列 schema 见 schema.py / 上文"对齐契约"。

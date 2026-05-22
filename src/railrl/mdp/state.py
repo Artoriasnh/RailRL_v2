@@ -109,6 +109,9 @@ class SnapshotBuilder:
     berth_history:     Optional[BerthHistory] = None
     movements_lookup:  Optional[MovementsLookup] = None
     event_stream:      Optional[EventTokenStream] = None
+    # route_id -> ordered list[track_id] (from routes_clean; nodes_route lacks
+    # track_sections). Used for on_focal_train_path + candidate first-TC flags.
+    route_tracks:      Optional[dict] = None
     run_leak_audit:    bool = True
 
     @classmethod
@@ -120,6 +123,7 @@ class SnapshotBuilder:
         nodes = StaticNodeTables.load()
         routes = pd.read_parquet(C.ROUTES_CLEAN_PARQUET)
         route_idx = RouteIndex(routes)
+        route_tracks = _build_route_tracks_map(routes)
         train_lkp = TrainStateLookup.build(td_events)
         subgraph = SubgraphExtractor(view=view, n_hops=C.SUBGRAPH_HOPS)
         # Histories
@@ -143,6 +147,7 @@ class SnapshotBuilder:
             berth_history=berth_hist,
             movements_lookup=mv_lookup,
             event_stream=ev_stream,
+            route_tracks=route_tracks,
         )
 
     # ------------------------------------------------------------
@@ -174,8 +179,13 @@ class SnapshotBuilder:
         if current_tc is None:
             return None  # caller logs to skipped_no_tc.jsonl
 
-        # 2. Extract 3-hop subgraph centered on current_tc
-        nodes_by_type = self.subgraph.extract(current_tc)
+        # 2. Extract subgraph: centered on current_tc, seeded with the focal
+        #    train's candidate routes (so off-network approach tracks like T938
+        #    still get the destination network they're being routed into).
+        candidate_route_ids = _as_str_list(decision.get("candidate_route_ids"))
+        nodes_by_type = self.subgraph.extract(
+            current_tc, seed_routes=(set(candidate_route_ids) or None),
+        )
         edges = self.subgraph.filter_edges(nodes_by_type)
 
         # 3. Collect other active trains in subgraph (multi-train support)
@@ -248,8 +258,8 @@ class SnapshotBuilder:
             "label": label,
             "chosen_route_id": decision.get("chosen_route_id"),
             "chosen_action_idx": int(decision.get("chosen_action_idx", -1)),
-            "candidate_route_ids": decision.get("candidate_route_ids", []),
-            "n_candidates": int(decision.get("n_candidates", 0)),
+            "candidate_route_ids": candidate_route_ids,
+            "n_candidates": int(decision.get("n_candidates", len(candidate_route_ids))),
             "trigger_type": decision.get("trigger_type", ""),
 
             # Reward (will be joined from decision_rewards.parquet downstream;
@@ -401,7 +411,7 @@ class SnapshotBuilder:
 
     def _build_route_nodes(self, route_ids: set[str], t_ns: int,
                             focal_train: str, decision: dict) -> list[dict]:
-        candidate_set = set(decision.get("candidate_route_ids", []) or [])
+        candidate_set = set(_as_str_list(decision.get("candidate_route_ids")))
         out = []
         for rid in route_ids:
             static = self.static_nodes.route.get(rid, {})
@@ -498,31 +508,16 @@ class SnapshotBuilder:
     # Edges
     # ------------------------------------------------------------
 
-    def _format_edges(self, edges: dict[str, pd.DataFrame]) -> dict[str, list]:
-        """Convert filtered edge DataFrames to lists of (src, dst, order) tuples."""
-        out = {}
-        for ename, edf in edges.items():
-            rows = []
-            for _, e in edf.iterrows():
-                if ename == "connects":
-                    src, dst = str(e["track_a"]), str(e["track_b"])
-                elif ename == "traverses":
-                    src, dst = str(e["route_id"]), str(e["track_id"])
-                elif ename == "starts_at":
-                    src, dst = str(e["route_id"]), str(e["signal_id"])
-                elif ename == "ends_at":
-                    src, dst = str(e["route_id"]), str(e["signal_id"])
-                elif ename == "protects":
-                    src, dst = str(e["signal_id"]), str(e["track_id"])
-                elif ename == "same_signal":
-                    src, dst = str(e["route_a"]), str(e["route_b"])
-                else:
-                    continue
-                order = int(e["order"]) if "order" in e and pd.notna(e["order"]) else -1
-                rows.append({"src": src, "dst": dst, "order": order})
-            out[ename] = rows
-        # Ensure all 6 keys are present (extract may yield empty frames)
-        for k in ("connects","traverses","starts_at","ends_at","protects","same_signal"):
+    def _format_edges(self, edges: dict[str, list]) -> dict[str, list]:
+        """Wrap filtered edge tuples (src, dst, order) into dicts.
+
+        `filter_edges` now returns plain (src, dst, order) tuples (no pandas),
+        so this is a trivial wrap — the old per-edge iterrows (≈8.7 ms/snapshot,
+        ~187 pandas Series created per snapshot) is gone.
+        """
+        out = {ename: [{"src": s, "dst": d, "order": int(o)} for (s, d, o) in tuples]
+               for ename, tuples in edges.items()}
+        for k in ("connects", "traverses", "starts_at", "ends_at", "protects", "same_signal"):
             out.setdefault(k, [])
         return out
 
@@ -550,16 +545,35 @@ class SnapshotBuilder:
         """Top-K=5 upcoming trains (excluding focal_train) from Movements gbtt.
 
         Per spec 02 §4.9 + spec 01 §17.5: gbtt only, planned_platform is int
-        1-6 or None — NEVER a signal ID.
+        1-7 or None — NEVER a signal ID.
+
+        Output shape matches schema.outlook_struct:
+            train_id, headcode_class, eta_s, planned_platform, event_type
         """
         if self.movements_lookup is None:
             return []
-        return self.movements_lookup.schedule_outlook(
+        raw = self.movements_lookup.schedule_outlook(
             t_ns,
             k=C.SCHEDULE_OUTLOOK_TOPK,
             lookahead_s=C.SCHEDULE_LOOKAHEAD_MIN * 60.0,
             exclude_train=focal_train,
         )
+        out = []
+        for r in raw:
+            tr = str(r.get("train_id", ""))
+            hc = tr[0] if tr and len(tr) >= 4 else "non_standard"
+            if hc not in {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}:
+                hc = "non_standard"
+            elif hc in {"7", "8"}:
+                hc = "other"
+            out.append({
+                "train_id":         tr,
+                "headcode_class":   hc,
+                "eta_s":            int(r.get("gbtt_delta_s", 0)),
+                "planned_platform": r.get("planned_platform"),
+                "event_type":       str(r.get("event_type", "")),
+            })
+        return out
 
     # ------------------------------------------------------------
     # Dynamic edges (at_berth, next_signal) + multi-train collection
@@ -629,13 +643,13 @@ class SnapshotBuilder:
                               all_train_ids: Optional[list[str]] = None,
                               ) -> dict:
         """Compute 8 special flags per spec 02 §4.10 / special_flags.py."""
-        candidate_route_ids = decision.get("candidate_route_ids", []) or []
+        candidate_route_ids = _as_str_list(decision.get("candidate_route_ids"))
         candidate_first_tc = []
         candidate_cls = []
         candidate_end_plat = []
         for rid in candidate_route_ids:
             static = self.static_nodes.route.get(str(rid), {})
-            tcs = static.get("track_sections")
+            tcs = (self.route_tracks or {}).get(str(rid))  # ordered, from routes_clean
             if isinstance(tcs, (list, np.ndarray)) and len(tcs) > 0:
                 candidate_first_tc.append(str(tcs[0]))
             else:
@@ -697,9 +711,9 @@ class SnapshotBuilder:
     def _focal_path_tcs(self, focal_train: str, decision: dict) -> set[str]:
         """TCs that lie on any of focal_train's candidate routes."""
         out: set[str] = set()
-        for rid in (decision.get("candidate_route_ids") or []):
-            static = self.static_nodes.route.get(str(rid), {})
-            tcs = static.get("track_sections")
+        rt = self.route_tracks or {}
+        for rid in _as_str_list(decision.get("candidate_route_ids")):
+            tcs = rt.get(str(rid))
             if isinstance(tcs, (list, np.ndarray)):
                 out.update(str(t) for t in tcs)
         return out
@@ -708,6 +722,48 @@ class SnapshotBuilder:
 # ============================================================
 # Internal helpers
 # ============================================================
+
+def _as_str_list(v) -> list:
+    """Safely coerce a possibly-None / nan / numpy-array / list value to a
+    list[str]. NEVER use `v or []` on values that might be numpy arrays —
+    `bool(array)` raises 'truth value of an array is ambiguous' (parquet reads
+    list columns back as numpy arrays)."""
+    if v is None:
+        return []
+    if isinstance(v, float):  # nan sentinel
+        return []
+    try:
+        return [str(x) for x in v]
+    except TypeError:
+        return []
+
+
+def _build_route_tracks_map(routes_clean: pd.DataFrame) -> dict:
+    """route_id -> ordered list[track_id] from routes_clean.track_sections.
+
+    nodes_route.parquet does NOT carry track_sections, so we source the
+    ordered TC list from routes_clean here (used for on_focal_train_path +
+    candidate first-TC flags + subgraph candidate seeding sanity).
+    """
+    import ast as _ast
+    out: dict = {}
+    if routes_clean is None or "track_sections" not in routes_clean.columns:
+        return out
+    for _, r in routes_clean.iterrows():
+        rid = str(r["route_id"])
+        v = r["track_sections"]
+        if isinstance(v, (list, np.ndarray)):
+            tcs = [str(x) for x in v]
+        elif isinstance(v, str):
+            try:
+                parsed = _ast.literal_eval(v)
+                tcs = [str(x) for x in parsed] if isinstance(parsed, (list, tuple)) else []
+            except Exception:
+                tcs = []
+        else:
+            tcs = []
+        out[rid] = tcs
+    return out
 
 def _to_nullable_int(v) -> Optional[int]:
     if v is None or (isinstance(v, float) and np.isnan(v)):

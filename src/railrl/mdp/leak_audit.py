@@ -20,6 +20,16 @@ References:
 from __future__ import annotations
 from typing import Any, Optional
 
+# Platform id range. Originally 1-6 (spec 01 §17.5.4); expanded to 1-7 on
+# 2026-05-20 — platform 7 is the Derby pilot line (user domain knowledge).
+# Imported defensively so this module stays importable even if config moves.
+try:
+    from .. import config as _C
+    _MIN_PLATFORM = getattr(_C, "MIN_PLATFORM_ID", 1)
+    _MAX_PLATFORM = getattr(_C, "MAX_PLATFORM_ID", 7)
+except Exception:  # pragma: no cover
+    _MIN_PLATFORM, _MAX_PLATFORM = 1, 7
+
 
 # ============================================================
 # Banned state fields (spec 01 §14.1 + §17.5.4)
@@ -169,20 +179,23 @@ def assert_no_leak(
             if "planned_end_signal" in tr or "planned_signal" in tr:
                 raise LeakAuditError(
                     f"[Check 4: schedule_outlook] schedule outlook row contains "
-                    f"forbidden signal field; only planned_platform (int 1-6) allowed. "
+                    f"forbidden signal field; only planned_platform "
+                    f"(int {_MIN_PLATFORM}-{_MAX_PLATFORM}) allowed. "
                     f"Got: {set(tr.keys())}"
                 )
             p = tr.get("planned_platform")
             if p is not None and not isinstance(p, (int, bool)):
                 # bool is a subclass of int; reject other types like str signal ID
                 raise LeakAuditError(
-                    f"[Check 4: schedule_outlook] planned_platform must be int 1-6 or None, "
+                    f"[Check 4: schedule_outlook] planned_platform must be int "
+                    f"{_MIN_PLATFORM}-{_MAX_PLATFORM} or None, "
                     f"got type={type(p).__name__} value={p!r}. "
                     f"Spec 01 §17.5.4: never use signal IDs in schedule outlook."
                 )
-            if p is not None and not (1 <= int(p) <= 6):
+            if p is not None and not (_MIN_PLATFORM <= int(p) <= _MAX_PLATFORM):
                 raise LeakAuditError(
-                    f"[Check 4: schedule_outlook] planned_platform must be in 1..6, got {p}"
+                    f"[Check 4: schedule_outlook] planned_platform must be in "
+                    f"{_MIN_PLATFORM}..{_MAX_PLATFORM}, got {p}"
                 )
 
     # ============================================================

@@ -74,6 +74,54 @@ class TestBuildEpisodes:
         assert int(out["is_last_in_episode"].sum()) == 1
 
 
+class TestJoinPassAssignments:
+    """spec 01 §17.2 — TRUST interval matching + gap-clustered fallback."""
+
+    def _pa(self):
+        # One TRUST pass for 1S49 covering 10:00–10:20 on 2024-01-01.
+        t0 = int(pd.Timestamp("2024-01-01 10:00").value)
+        t1 = int(pd.Timestamp("2024-01-01 10:20").value)
+        return pd.DataFrame({
+            "trainid_filled":  ["1S49"],
+            "pass_id":         ["851S49ME01"],
+            "pass_t_first_ns": [t0],
+            "pass_t_last_ns":  [t1],
+            "pass_source":     ["trust_match"],
+        })
+
+    def test_decision_inside_interval_gets_trust_pass(self):
+        df = pd.DataFrame({
+            "focal_train": ["1S49", "1S49"],
+            "t": pd.to_datetime(["2024-01-01 10:05", "2024-01-01 10:15"]),
+        })
+        out = build_episodes(df, pass_assignments=self._pa())
+        assert (out["pass_id"] == "851S49ME01").all()
+        assert out["episode_idx"].nunique() == 1  # one TRUST pass → one episode
+
+    def test_unmatched_decisions_gap_cluster_not_collapse(self):
+        # Two decisions far OUTSIDE the TRUST interval, 2 days apart →
+        # must become TWO fallback episodes (not one giant FB:1S49:0).
+        df = pd.DataFrame({
+            "focal_train": ["1S49", "1S49"],
+            "t": pd.to_datetime(["2024-02-01 10:00", "2024-02-03 10:00"]),
+        })
+        out = build_episodes(df, pass_assignments=self._pa())
+        assert out["pass_id"].str.startswith("FB:").all()
+        # 2-day gap > PASS_FALLBACK_GAP_S (6h) → 2 distinct fallback passes
+        assert out["pass_id"].nunique() == 2
+
+    def test_mixed_matched_and_fallback(self):
+        df = pd.DataFrame({
+            "focal_train": ["1S49", "1S49"],
+            "t": pd.to_datetime(["2024-01-01 10:05",   # inside interval
+                                  "2024-06-01 10:00"]),  # way outside
+        })
+        out = build_episodes(df, pass_assignments=self._pa())
+        ids = set(out["pass_id"])
+        assert "851S49ME01" in ids                       # TRUST match
+        assert any(p.startswith("FB:") for p in ids)     # fallback for the other
+
+
 class TestEpisodeReturns:
     def test_zero_rewards_yield_zero(self):
         df = pd.DataFrame({

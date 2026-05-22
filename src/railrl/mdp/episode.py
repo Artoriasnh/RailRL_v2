@@ -93,24 +93,50 @@ def _join_pass_assignments(df: pd.DataFrame, pa: pd.DataFrame) -> pd.DataFrame:
         intervals.sort()
         interval_by_train[str(tid)] = intervals
 
-    # Resolve pass_id for each row
+    # Resolve pass_id for each row. Intervals are sorted ascending by t0;
+    # we still scan all (not break on first t0>t_ns) because buffered
+    # intervals can NEST (a short pass starting inside a long pass), so a
+    # later-starting interval is not guaranteed to be the containing one.
     df["t_ns"] = df["t"].astype("int64")
-    pass_ids = []
-    for _, row in df.iterrows():
-        tid = str(row["focal_train"])
-        t_ns = int(row["t_ns"])
+    pass_ids: list[Optional[str]] = []
+    unmatched_positions: list[int] = []
+    focal_arr = df["focal_train"].astype(str).to_numpy()
+    tns_arr = df["t_ns"].to_numpy()
+    for i in range(len(df)):
+        tid = focal_arr[i]
+        t_ns = int(tns_arr[i])
         intervals = interval_by_train.get(tid, [])
         matched = None
         for t0, t1, pid in intervals:
             if t0 <= t_ns <= t1:
                 matched = pid
                 break
-        if matched is None:
-            # Fallback: form fallback id
-            matched = f"FB:{tid}:0"
         pass_ids.append(matched)
+        if matched is None:
+            unmatched_positions.append(i)
 
     df["pass_id"] = pass_ids
+
+    # Fallback for decisions that fall in NO TRUST interval: gap-cluster them
+    # (do NOT collapse all of a train's unmatched decisions into one episode —
+    # that would create a single bogus episode spanning months). Split on
+    # gaps > PASS_FALLBACK_GAP_S so each fallback episode is temporally local.
+    if unmatched_positions:
+        um = df.iloc[unmatched_positions][["focal_train", "t_ns"]].copy()
+        um["_pos"] = unmatched_positions
+        um = um.sort_values(["focal_train", "t_ns"])
+        gap_ns = int(C.PASS_FALLBACK_GAP_S * 1e9)
+        um["_gap"] = um.groupby("focal_train")["t_ns"].diff().fillna(0).astype("int64")
+        um["_brk"] = (um["_gap"] > gap_ns).astype(int)
+        um["_seg"] = um.groupby("focal_train")["_brk"].cumsum()
+        um["_fb"] = ("FB:" + um["focal_train"].astype(str) + ":"
+                     + um["_seg"].astype(str))
+        fb_by_pos = dict(zip(um["_pos"], um["_fb"]))
+        new_ids = df["pass_id"].tolist()
+        for pos, fb in fb_by_pos.items():
+            new_ids[pos] = fb
+        df["pass_id"] = new_ids
+
     df = df.drop(columns=["t_ns"])
     return df
 

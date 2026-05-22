@@ -277,3 +277,86 @@ touch <file>
 
 - **2026-05-19** v1.0 — 初版，记录 Stage 1-2 期间发现的 6 个工具陷阱
 - 未来发现新陷阱：在末尾追加 §7、§8 ...
+
+
+---
+
+## §7 — `touch` 在 virtiofs 上可能截断文件（Stage 3 R3）
+
+**症状**：跑 `touch src/railrl/mdp/state_history.py` 期望仅 bump mtime，结果文件被截断到 ~500 行（原本 503+ 行），最后一个方法 `slice_last_k` 的 body 被切掉，引发 `TypeError: 'NoneType' object is not iterable`（缺 `return out`）。
+
+**原因推断**：Windows ↔ Linux virtiofs 的同步层。`touch` 在某些情况下会触发 fsync-like 操作，跨同步层时如果有 in-flight write 被 drop，文件就裸露 partial 状态。
+
+**避免**：
+- **不要用 `touch` 在 virtiofs 挂载下 bump mtime**。
+- 用 `python -c "p='...'; open(p,'w').write(open(p).read())"` 替代 — 显式 read + write，full content guaranteed。
+- 改完后立即 3 件套：`ast.parse + wc -l + tail -10`。
+
+---
+
+## §8 — heredoc 追加遇到 linter 的"自动修复"会产生重复块（Stage 3 R3）
+
+**症状**：state.py 末尾的 `_to_nullable_int` helper 因为 Edit 截断只剩 `except` 关键字断掉 → `try: return int(v); exc`。用 heredoc 追加 `ept (TypeError, ValueError):\n    return None\n...`。但 linter 已经先一步把整个文件修好了（自动补全 `except`）。结果文件里出现两份内容：lines 712-724 是 linter 版本，lines 725-732 是我的 heredoc 版本。后者 `ept (TypeError, ValueError):` 是 orphan，触发 `SyntaxError: invalid syntax`。
+
+**根因**：cowork 环境里有自动 linter（system reminder 形式提示）会修文件。如果你已经规划好 heredoc 追加，但 linter 在你 heredoc 前就修好了，你的 heredoc 会落到修好版本后面，造成重复。
+
+**避免**：
+- **改前用 `tail -5` 检查文件结尾**。如果看到看似已经完整的代码（比如 `except` 块完整），不要再 heredoc 追加。
+- 如果不确定，用 `head -N` 截断 + 整段重写比 heredoc 追加更安全。
+
+---
+
+## §9 — pandas `Series.apply()` 自动 coerce mixed int/None 到 float64（Stage 3 R3）
+
+**症状**：`_parse_plat` 函数返回 int 或 None。在隔离测试中 `[_parse_plat(v) for v in ...]` 给出 `[3, None]`（types: int, NoneType）。但同样的代码放进 `MovementsLookup.build()` 的实际执行路径，存进 dict 后变成 `[3.0, nan]`（types: float, float）。差异来源：实际路径里中间经过了一次 `pd.Series → list` 之类的转换。
+
+**测试**：
+```python
+s = pd.Series([3, 4, 99]).apply(lambda v: int(v) if 1<=v<=6 else None)
+print(s.dtype)  # float64 ！
+print(s.tolist())  # [3.0, 4.0, nan]
+```
+
+**避免**：
+- **不要依赖 pandas Series 的元素类型保留**。在最终存储点强制 `int(p) if 1 <= p <= 6 else None`。
+- 这条对 leak audit 也重要：Check 4 严格要求 `planned_platform` 是 int（不是 float）。
+
+---
+
+## §10 — pyc 缓存在 virtiofs 上挡住代码更新（Stage 3 R3 重灾区）
+
+**症状**：改了 `state.py` 的方法签名（如新加 `_collect_other_active_trains`），但运行测试时 `AttributeError: 'SnapshotBuilder' object has no attribute '_collect_other_active_trains'`。`inspect.getsource()` 显示的源码确实有这个方法（说明 .py 是新的），但 dataclass `__dataclass_fields__` 还是旧的（说明加载的是 stale pyc）。
+
+**原因**：virtiofs 上 .py 和 .pyc 的 mtime 同步性微妙。Edit 工具改 .py 但 mtime 不一定 bump。Python 用 mtime 比较来判断 pyc 是否过期，若 .py 的 mtime <= .pyc 内嵌的 mtime，pyc 被认为是新鲜的，被加载。
+
+**避免**：
+- **永远的最后一招**：`python -c "p='<file>'; open(p,'w').write(open(p).read())"` — 读完整内容再写回，强制 bump mtime。
+- 不要用 `find . -name __pycache__ -exec rm -rf {} +` — virtiofs 上很多情况下没有写权限删 pyc。
+- 不要用 `touch` —— 见 §7。
+
+---
+
+## §11 — `/sessions` 沙盒磁盘满 → bash 看到的挂载文件被冻结在旧版本（Stage 3 hotfix）
+
+**症状**：用 Edit 工具改了 4 个文件，Read 工具确认改动都在（Windows 侧文件完整），但 sandbox 的 `bash` 里 `wc -l` / `cat` / `ast.parse` 看到的是**截断的旧版本**，且反复 retry + sleep 都不刷新。`stat` 显示的 mtime 是几天前的旧时间戳。
+
+**根因**：`df -h /sessions` 显示 **100% 满**（9.8G 用满，仅剩几 MB）。bash 沙盒通过 virtiofs 挂载读 `E:\` 的文件，需要把更新后的副本写进沙盒缓存。磁盘满 → 写不进 → bash 一直读旧的冻结副本。罪魁通常是之前缓存的大数据文件（td_data.parquet 11.7M 行、Movements.csv 50MB 等）撑满了 virtiofs cache。
+
+**关键认知**：
+- **Read/Edit/Write 工具走 Windows 文件 API，不受沙盒磁盘影响** —— 它们读写的就是用户在 Windows 上跑的真实文件。
+- **bash 走 virtiofs 挂载，磁盘满时会读到冻结的旧副本**。
+- **用户在 Windows 上跑 pytest/脚本，拿到的是 Read 工具看到的版本（正确完整的）**。
+
+**避免 / 应对**：
+1. 当 bash 的 `wc -l` 跟 Read 工具结果不一致时，先 `df -h /sessions`，如果满了就知道是这个问题。
+2. **用 Read 工具逐段验证编辑区域**（它读 Windows 真实文件），不要依赖 bash 的 AST 检查。
+3. 清缓存：`rm -rf ~/.cache/* ~/.local/...`，但大头是 virtiofs 缓存的挂载数据文件（内核应自动回收，满的时候可能回收不及时）。
+4. 验证逻辑正确性时，把逻辑抽出来在 `/tmp`（在 `/` 而非 `/sessions`，通常还有空间）写独立脚本测，不 import 挂载的包。
+5. 不要 `pip install` 大包到 `/sessions`（用 `--target=/tmp/...`）。
+
+---
+
+## 更新日志（增量）
+
+- **2026-05-20** v1.1 — 增加 §7-§10（Stage 3 R3 期间发现的 4 个新陷阱）
+- **2026-05-20** v1.2 — 增加 §11（/sessions 磁盘满导致 bash 挂载文件冻结）
