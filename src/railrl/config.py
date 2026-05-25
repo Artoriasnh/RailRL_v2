@@ -190,13 +190,31 @@ DECISION_REWARDS_PARQUET = REWARDS_DIR / "decision_rewards.parquet"
 DECISION_REWARDS_SUMMARY = REWARDS_DIR / "decision_rewards_summary.json"
 
 # TD parquet cache
+TD_PARQUET        = CACHE_DIR / "td_data.parquet"
 MOVEMENTS_PARQUET = CACHE_DIR / "movements.parquet"
+
+# 🔴 Movements BST acquisition bug (found 2026-05-24): all Movements timestamps
+# (actual/planned/gbtt) are shifted +1h for the 2023-04-04 .. 2023-07-31 collection
+# runs (double-applied BST upstream; corrected for Aug+ runs). Confirmed via per-day
+# decision↔Movements offset (= +58.6 min = normal −1.4 + 60, ONLY Apr-Jul) and by
+# Movements' own daily rhythm shifting +1h there. Internal delay (actual−planned) is
+# unaffected (both shift together); only the absolute clock is wrong → misaligns with
+# TD decision times. FIX: subtract 1h from these timestamps for rows in the window.
+# Bounds fall inside data gaps (3/17-4/3, 8/1-8/9) so they're exact. See data_io.
+# correct_movements_bst + IMPLEMENTATION_LOG 2026-05-24 "fix #2".
+MOVEMENTS_BST_FIX_START = "2023-03-17"   # inclusive; in the Mar/Apr data gap
+MOVEMENTS_BST_FIX_END   = "2023-08-05"   # exclusive; in the Jul/Aug data gap
+MOVEMENTS_BST_FIX_DELTA_H = -1           # hours to add to in-window timestamps
 
 # v2 MDP outputs (per spec 02 — to be generated in Stage 2-3)
 DECISION_POINTS_V2_PARQUET = DECISION_POINTS_DIR / "decision_points_v2.parquet"
 SNAPSHOTS_V2_PARQUET       = SNAPSHOTS_DIR / "snapshots_v2.parquet"
 SNAPSHOTS_V2_SUMMARY       = SNAPSHOTS_DIR / "snapshots_v2_summary.json"
 NORMALIZATION_STATS_JSON   = SNAPSHOTS_DIR / "normalization_stats.json"
+# Time-based train/val/test split (spec 04 §4.1) — pass_id → split, assigned by
+# each episode's start time. Replaces the earlier md5(pass_id) hash split which
+# leaked future data (spec 04 §4.1 + 教训 6). Built by 00_build_time_split.py.
+PASS_SPLIT_PARQUET         = SNAPSHOTS_DIR / "pass_split.parquet"
 
 # === Calibration constants (LOCKED per spec 01 §9 — empirical from 14-month data) ===
 HEADWAY_PERCENTILE_FOR_HMIN = 5
@@ -226,6 +244,13 @@ SUBGRAPH_HOPS  = 3        # spec 02 §4.2
 TIME_WINDOWS_MINUTES = (1, 5, 10, 15, 30)  # spec 02 §4.3
 SCHEDULE_LOOKAHEAD_MIN = 15                # spec 02 §4.9
 SCHEDULE_OUTLOOK_TOPK  = 5                 # spec 02 §4.9
+
+# Platform id range. Spec 01 §17.5.4 originally locked 1-6, but real Derby
+# data + user domain knowledge (2026-05-20) confirms platform 7 is the
+# **pilot line** (north dep EC5487, south dep EC5484, TCs TECV/TECS).
+# Expanded to 1-7 so schedule_outlook + leak_audit accept it.
+MIN_PLATFORM_ID = 1
+MAX_PLATFORM_ID = 7
 
 # === Padding caps (LOCKED per spec 03 §2.1) ===
 MAX_TRACKS_PADDED     = 60
@@ -349,3 +374,5 @@ def verify_paths_resolved() -> bool:
             f"  - {name}: {path}" for name, path in missing)
         raise FileNotFoundError(msg)
     return True
+
+# (platform 1-7 expansion 2026-05-20)
