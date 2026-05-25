@@ -16,11 +16,13 @@ script (05) audits every N=1000th row by default; this script gives the
 from __future__ import annotations
 import argparse
 import json
+import math
 import sys
 import time
 from pathlib import Path
 
 import pandas as pd
+import pyarrow.parquet as pq
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
@@ -40,18 +42,24 @@ def _parse_args():
     return p.parse_args()
 
 
-def _row_to_snapshot(row: pd.Series) -> tuple[dict, dict]:
-    """Re-hydrate snapshot + sample_meta dicts from a parquet row."""
-    # The build script flattens snapshot dict → row. Reconstruct the bits
-    # the audit needs.
-    state_keys = [c for c in row.index if c.startswith("state_") or c == "center"]
-    snap = {k: row[k] for k in state_keys if pd.notna(row.get(k, None)) or
-             isinstance(row.get(k), (list, dict))}
-    # Lists/dicts may have come back as numpy arrays — leave as-is, the audit
-    # functions handle both.
+def _row_to_snapshot(row: dict) -> tuple[dict, dict]:
+    """Re-hydrate snapshot + sample_meta dicts from a parquet row (to_pylist dict).
+
+    Row comes from pyarrow .to_pylist() → nested values are Python lists/dicts and
+    nulls are None, so we just keep non-None state_*/center keys. (The old version
+    used pd.notna() on pandas Series cells, which raised "truth value of an array is
+    ambiguous" when a nested cell decoded to a numpy array.)
+    """
+    snap = {k: v for k, v in row.items()
+            if (k.startswith("state_") or k == "center") and v is not None}
+    # leak_audit Check 1 reads snapshot["center"], but the parquet stores it as
+    # "state_center" (bare "center" is dropped at write time / not in the Arrow
+    # schema). Alias so Check 1 sees the real center {type:'track', id:...}.
+    if "center" not in snap and snap.get("state_center") is not None:
+        snap["center"] = snap["state_center"]
     sample_meta = {
         "focal_train":            row.get("focal_train"),
-        "focal_train_current_tc": (snap.get("state_center", {}) or {}).get("id"),
+        "focal_train_current_tc": (snap.get("state_center") or {}).get("id"),
         "focal_signal":           row.get("focal_signal"),
     }
     return snap, sample_meta
@@ -68,54 +76,61 @@ def main():
     print("Stage 3 R3 — full-corpus leak audit")
     print("=" * 70)
 
-    print(f"[1/3] loading {inp}")
-    df = pd.read_parquet(inp)
-    print(f"      {len(df):,} snapshots")
+    # STREAM row-group by row-group (memory-bounded). The old `pd.read_parquet(inp)`
+    # loaded the WHOLE 573MB file (nested state_* cols decode to ~15-20GB) → OOM.
+    pf = pq.ParquetFile(str(inp))
+    nrg = pf.num_row_groups
+    total_rows = pf.metadata.num_rows
+    per_group = None
+    if args.sample is not None and args.sample < total_rows:
+        per_group = max(1, math.ceil(args.sample / nrg))   # spread sample across groups
+    print(f"[1/3] streaming {inp.name} ({total_rows:,} rows, {nrg} row groups)"
+          + (f"; sampling ~{per_group}/group ≈ {args.sample:,}" if per_group else "; ALL rows"))
 
-    if args.sample is not None and args.sample < len(df):
-        df = df.sample(n=args.sample, random_state=args.seed)
-        print(f"      sampled {len(df):,}")
-
-    print(f"[2/3] running {len(df):,} audits...")
     n_pass = 0
     n_fail = 0
-    violations = []
-    log_every = max(1000, len(df) // 50)
-
-    for i, (_, row) in enumerate(df.iterrows()):
-        snap, meta = _row_to_snapshot(row)
-        t_ns = int(pd.Timestamp(row["t"]).value) if "t" in row.index else 0
-
-        if args.first_fail:
-            try:
-                assert_no_leak(snap, meta, t_ns)
-                n_pass += 1
-            except LeakAuditError as e:
-                n_fail += 1
-                print(f"\n[FAIL] sample_id={row.get('sample_id')} {e}\n")
-                violations.append({
-                    "sample_id":   int(row.get("sample_id", -1)),
-                    "focal_train": row.get("focal_train"),
-                    "t":           str(row.get("t")),
-                    "violations":  [str(e)],
-                })
-                break
-        else:
-            row_v = collect_violations(snap, meta, t_ns)
-            if row_v:
-                n_fail += 1
-                violations.append({
-                    "sample_id":   int(row.get("sample_id", -1)),
-                    "focal_train": row.get("focal_train"),
-                    "t":           str(row.get("t")),
-                    "violations":  row_v,
-                })
+    violations = []          # capped (keep first 1000 to avoid OOM)
+    VIO_CAP = 1000
+    seen = 0
+    stop = False
+    import random as _random
+    print(f"[2/3] running audits...")
+    for rg in range(nrg):
+        rows = pf.read_row_group(rg).to_pylist()      # one group only (~5k rows) → dicts
+        if per_group is not None and per_group < len(rows):
+            rows = _random.Random(args.seed + rg).sample(rows, per_group)
+        for row in rows:
+            snap, meta = _row_to_snapshot(row)
+            t_ns = int(pd.Timestamp(row["t"]).value) if row.get("t") is not None else 0
+            if args.first_fail:
+                try:
+                    assert_no_leak(snap, meta, t_ns)
+                    n_pass += 1
+                except LeakAuditError as e:
+                    n_fail += 1
+                    print(f"\n[FAIL] sample_id={row.get('sample_id')} {e}\n")
+                    violations.append({"sample_id": int(row.get("sample_id", -1)),
+                                       "focal_train": row.get("focal_train"),
+                                       "t": str(row.get("t")), "violations": [str(e)]})
+                    stop = True
+                    break
             else:
-                n_pass += 1
-
-        if (i + 1) % log_every == 0:
-            print(f"  ... {i+1:,}/{len(df):,}  "
-                  f"pass={n_pass:,}  fail={n_fail:,}")
+                row_v = collect_violations(snap, meta, t_ns)
+                if row_v:
+                    n_fail += 1
+                    if len(violations) < VIO_CAP:
+                        violations.append({"sample_id": int(row.get("sample_id", -1)),
+                                           "focal_train": row.get("focal_train"),
+                                           "t": str(row.get("t")), "violations": row_v})
+                else:
+                    n_pass += 1
+            seen += 1
+        del rows
+        if stop:
+            break
+        if rg % 25 == 0:
+            print(f"  ... rg {rg}/{nrg}  audited={seen:,}  pass={n_pass:,}  fail={n_fail:,}",
+                  flush=True)
 
     # Write violations
     if violations:
