@@ -360,3 +360,138 @@ print(s.tolist())  # [3.0, 4.0, nan]
 
 - **2026-05-20** v1.1 — 增加 §7-§10（Stage 3 R3 期间发现的 4 个新陷阱）
 - **2026-05-20** v1.2 — 增加 §11（/sessions 磁盘满导致 bash 挂载文件冻结）
+
+
+---
+
+## §12 — datetime64[us] vs ns 单位不匹配（Stage 3 数据 bug，最严重）
+
+**症状**：全量构建 2M snapshots 后审计，发现 event token 的 `time_delta_s` 100% 都是 ~1.69e9（看着像 UNIX 秒时间戳，不是"距决策多少秒"的 delta）。
+
+**根因**：`td_data.parquet` 的 `time` 列是 **datetime64[us]（微秒）**。各 history builder 用 `sub["time"].astype("int64")` 得到的是**微秒**（~1.69e15）；但 `build_snapshot` 里 `t_ns = pd.Timestamp(decision["t"]).value` 是**纳秒**（~1.69e18）。两者差 1000 倍。结果：`t_ns >> 所有事件时间` → `np.searchsorted` 永远返回末尾 → 所有时间查询都返回"该资产最后一次事件"（既是未来泄露，又完全错误）。
+
+**影响范围**（全错，需重建）：current_tc（子图中心！）、occupied_now、current_occupier、occupancy_fraction_*、n_state_changes_*、aspect_*、last_change_age_s、berth 占用、recent_panel_requests、event token deltas。
+**不受影响**：candidates、Derby_info、静态属性、episodes/pass_id、schedule_outlook（Movements 走 ns，一致）。
+
+**为什么所有单元测试 + 合成测试都没抓到**：合成数据用 `pd.to_datetime([...])` 创建的是 datetime64[**ns**]，`.astype("int64")` 给 ns，恰好和 t_ns 一致 → 测试全过。真实 parquet 是 us → 暴露。**这是合成测试和真实数据 dtype 不一致导致的盲区。**
+
+**修复**：加 `_to_ns_int64(times)` helper：`np.asarray(times.values).astype("datetime64[ns]").astype("int64")` —— 不管源是 us 还是 ns，强制转 ns。在所有 TD-time 转换点用它（state_history 5 处 + state_helpers TrainStateLookup 1 处）。
+
+**教训 / 检查清单**：
+1. **任何时间→int 的转换都要显式声明单位**。`datetime64.astype("int64")` 的结果单位 = 该列的 resolution（us/ns/ms），不一定是 ns！
+2. **`pd.to_datetime(series)` 在 pandas 2.x 保留源单位**（us 进 → us 出），不会自动转 ns。要强制 ns 用 `.values.astype("datetime64[ns]")`。
+3. **合成测试必须复刻真实数据的 dtype**（包括 datetime resolution）。用 `pd.to_datetime(...).astype("datetime64[us]")` 复刻 td 的 us。
+4. **验证产物时，看特征的数值范围/分布，不只是"非空/有值"**。time_delta_s 全是 1.69e9 一眼就能看出是时间戳不是 delta —— 但只检查"schedule_outlook 94% 非空"这种就漏了。
+
+---
+
+## 更新日志（增量）
+
+- **2026-05-20** v1.3 — 增加 §12（datetime64 us/ns 单位 bug，Stage 3 最严重数据 bug）
+
+
+---
+
+## §13 — nn.ModuleDict 不能用 'train'/'eval'/'type' 等保留名做 key（Stage 4.3）
+
+**症状**：`HGTEncoder.build` 报 `KeyError: "attribute 'train' already exists"`，在 `self.ident["train"] = nn.Embedding(...)`。
+
+**根因**：`nn.ModuleDict[key]=mod` 调 `Module.add_module(key, mod)`，而 `nn.Module` 已有 `train()` / `eval()` / `type()` / `to()` / `cpu()` / `forward` 等方法，同名 key 被拒。我们用节点类型名（track/signal/route/**train**）做 ModuleDict key，"train" 撞车。
+
+**修复**：所有按节点类型 key 的 ModuleDict（ident/cats/proj/norm）一律加前缀 `"nt_"+nt`，forward 里同样。
+
+**避免**：任何用"业务名字"做 ModuleDict/ Module 属性名时，避开 PyTorch 保留名（train/eval/type/to/cpu/cuda/forward/training/...）。统一加前缀最省心。policies/heads.py 若也按节点类型 key 要注意。
+
+---
+
+## §14 — pyarrow 整表载入 + sort_by/take 在嵌套列上内存爆炸（Stage 4.7.2d）
+
+**症状**：`15_resort_snapshots_canonical.py` 第一版 `pq.read_table(整个 573MB snapshots)` + `Table.sort_by(...)`，在 **31GB RAM** 的机器上把系统物理内存吃光，连带把 **PyCharm 的 JVM 也 OOM 杀掉**（`java_error_in_pycharm_*.log`：`malloc failed to allocate 1046512 bytes ... system is out of physical RAM`）。注意：崩溃日志是 **PyCharm/JVM 的**，不是 Python traceback——容易误判成 IDE 问题，实则是同机的 Python 进程把 RAM 吃干。
+
+**根因**：snapshots_v2.parquet 虽然 zstd 压缩后只有 573MB，但**列是大量 list-of-struct 嵌套**（state_nodes_* / event_tokens 256 / edges 8 类 …）。`read_table` 解码成 Arrow in-memory 后**膨胀到十几 GB**；`sort_by`（以及 `take`/`join`）会再**整体复制一份** → 峰值 ×2，轻松超过 31GB。
+
+**修复**：改成**内存有界的流式外排（bucket sort）**：
+- Pass 1：逐 row group 读（~5000 行/次）→ 用 sidecar 替换 episode 列 + 加 split → 按 episode_idx 分到 N 个 bucket 临时文件（每 bucket 是连续 episode_idx 区间）。峰值 = 一个 row group。
+- Pass 2：按 bucket 顺序逐个读回（~几万行）→ 桶内 `sort_by(episode_idx, position)` → 追加写最终文件。峰值 = 一个 bucket。
+- 全程峰值几百 MB，且天然顺序写。
+
+**避免 / 检查清单**：
+1. **嵌套列的大 parquet 永远不要"整表 read_table + sort_by/take"**——哪怕压缩后看着不大。先按行组流式处理，需要全局排序就走 bucket/外排。
+2. 估内存按**解码后**算（嵌套可膨胀 10-30×），不是按 parquet 文件大小。
+3. 机器是 31GB（本地 Ryzen 9 9955HX）；重活在它上面跑要留意峰值。崩溃若是 `java_error_in_pycharm`，先怀疑同机 Python 进程吃光 RAM，而非 IDE bug。
+4. 跑大内存脚本尽量用**独立终端**（PowerShell）而非 PyCharm 内置运行器，少和 IDE 抢内存。
+
+---
+
+## §15 — HPC DataLoader 多 worker 报 `received 0 items of ancdata`（Stage 6）
+
+**症状**：服务器（HPC sapphire）上 `num_workers=16` 跑 `09_train.py` 报
+`RuntimeError: received 0 items of ancdata`（在 `recvfds`）。`num_workers=8` 正常。
+
+**根因**：PyTorch DataLoader 默认 `file_descriptor` 张量共享策略，多 worker 传 PyG Batch
+时超出进程的 fd 预算（cluster 上 `ulimit -n` 常较低）。**非代码 bug**。
+
+**修复**：主进程 spawn worker 前设 `torch.multiprocessing.set_sharing_strategy("file_system")`
+（改用 /tmp 文件共享，绕开 fd 限制）→ num_workers≥16 可用。备选：`ulimit -n 4096`。
+
+**避免**：任何在 HPC 上多 worker 的 DataLoader，开头就设 file_system 策略。
+
+---
+
+## §16 — pandas `pd.notna()` 作用在"嵌套列单元（numpy array）"上 truth ambiguous（Stage 6 审计）
+
+**症状**：`06_run_leak_audit_full.py` 用 `pd.read_parquet→iterrows`，
+`{k: row[k] for k in keys if pd.notna(row.get(k)) or isinstance(...)}` 报
+`ValueError: The truth value of an array with more than one element is ambiguous`。
+
+**根因**：`to_pandas()` 把 list-of-struct 列解码成 **numpy object array** 的单元；
+`pd.notna(np.array([...]))` 返回数组，`数组 or ...` → `bool(数组)` → 多元素时报错。
+
+**避免**：处理嵌套 parquet 的行，用 **`ParquetFile.read_row_group(rg).to_pylist()`** 拿
+**Python dict 行**（嵌套为 list/dict、null 为 None），判空用 `v is not None`，别用 pandas
+Series + `pd.notna`。（顺带也内存有界、避开 §14 的整表 read。）
+
+**连带**：从 parquet 重建 snapshot 给 leak_audit 时，注意列名——文件存 `state_center`，
+而 `leak_audit` Check1 读 `snapshot["center"]` → 需别名 `center=state_center`，否则 100% 假 fail。
+
+---
+
+## §17 — PyTorch 2.6 `torch.load` 默认 `weights_only=True` 拒载 numpy 标量（Stage 6 resume）
+
+**症状**：服务器（torch 2.6）resume 时 `torch.load(resume_path)` 报
+`UnpicklingError: Weights only load failed ... Unsupported global numpy._core.multiarray.scalar`。
+
+**根因**：PyTorch 2.6 把 `torch.load` 的 `weights_only` 默认从 False 改成 **True**（只允许张量/基本类型）。
+我们的 resume checkpoint 含**非张量状态**（best_state/log/**gates**），其中 `gates["A"]` 的
+"loss finite" 项是 `np.isfinite(...)` → **numpy.bool_** 标量 → 被拒。
+
+**为什么 `--max-batches 5` 测试时没事**：那次在 **Phase A 中途**被 Ctrl-C，gates 还是 `{}`（A 的 gate 在 run_phase 返回后才算）→ checkpoint 无 numpy 标量 → 加载成功。全量跑进了 **Phase B**，gates["A"] 已含 numpy bool → 加载失败。
+
+**修复**：(1) 加载**自己写的可信** checkpoint 用 `torch.load(..., weights_only=False)`；
+(2) 写入端把 numpy 标量转 python（`bool(np.isfinite(...))`），keep checkpoint 干净。
+**避免**：torch≥2.6 下，凡 `torch.load` 自己存的含非张量对象的 ckpt，显式 `weights_only=False`；
+存 ckpt 时别塞 numpy 标量（统一 `float()/bool()/int()`）。
+
+## 更新日志（增量）
+- **2026-05-20** v1.4 — 增加 §13（nn.ModuleDict 保留名冲突）
+- **2026-05-22** v1.5 — 增加 §14（pyarrow 整表 sort_by 在嵌套列上 OOM；改用流式 bucket 外排）
+- **2026-05-22** v1.6 — 增加 §15（HPC DataLoader fd-sharing ancdata→file_system）+ §16（pd.notna 嵌套数组 + center 列名别名）
+- **2026-05-22** v1.7 — 增加 §17（torch 2.6 weights_only=True 拒载 numpy 标量；resume 加载用 weights_only=False）
+
+---
+
+## §18 — pandas pyarrow/string-dtype 列不能被掩码赋 Timestamp + 合成测试 dtype 不匹配（2026-05-24 fix #2）
+
+**症状**：`correct_movements_bst` 里 `df.loc[mask, c] = pd.to_datetime(...) + delta` 报
+`TypeError: Invalid value for dtype 'str'. Value should be a string or missing value`。
+
+**根因**：`pd.read_csv(usecols=[...])`（compute_delay_changes 用）在 pandas 2.x 下把那两列读成 **pyarrow-backed string dtype**；往 string-dtype 列**掩码赋值一个 Timestamp** 不被允许。而 `load_movements` 用 `parse_dates=[...]` → datetime64 列，赋值 OK → **同一函数在两条读取路径下，一条过一条崩**（23 走 load_movements 过了，09 走 read_csv 崩了）。
+
+**为什么 /tmp 测试没抓到**：合成 DataFrame 用的是 **object-dtype** 字符串列（普通 python str），object 列能装 Timestamp（混合类型），所以测试通过；真实 read_csv 是 **pyarrow-string dtype**，不能。又是"合成 dtype ≠ 真实 dtype"（同 §12 us/ns 教训）。
+
+**修**：掩码减法前先把整列转 datetime（`df[c] = pd.to_datetime(df[c], errors="coerce")`，已是 datetime 时为 no-op），再 `df.loc[mask,c] = df.loc[mask,c] + delta`。两种 dtype 都稳。
+
+**教训**：(1) 往 pandas 列写值要确认列 dtype 能容纳该类型，尤其 pyarrow-backed dtype 严格；(2) **合成测试必须复刻真实读取路径的 dtype**（read_csv 的 string-backend vs parse_dates 的 datetime vs object），否则盲区——这是本项目第二次栽在 dtype 不匹配上（见 §12）。
+
+## 更新日志（增量）
+- **2026-05-24** v1.8 — 增加 §18（pyarrow/string-dtype 掩码赋 Timestamp 失败 + 合成测试 dtype 不匹配，fix #2 reward 路径）
