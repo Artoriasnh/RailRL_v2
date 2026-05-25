@@ -214,11 +214,18 @@ def label_all_prs(decision_points_parquet: Path,
     pr["r_thru"] = pr["outcome"].map(OUTCOME_REWARD)
     if n_route_unknown > 0:
         print(f"  WARNING: {n_route_unknown} PRs had no asset_idx for chosen_route_id")
-    return pr[[
+    out_cols = [
         "time", "focal_signal", "focal_train", "chosen_route_id",
         "outcome", "route_set_duration_seconds",
         "n_route_tc_occupations", "r_thru",
-    ]]
+    ]
+    # Carry sample_id through when the source table has it (v2 rewardfmt).
+    # The 4-tuple (time, focal_signal, focal_train, chosen_route_id) is NOT
+    # unique — duplicate PRs blow up a downstream merge — so sample_id is the
+    # safe 1:1 join key. v1 decision_points lack the column → no-op there.
+    if "sample_id" in pr.columns:
+        out_cols = ["sample_id"] + out_cols
+    return pr[out_cols]
 
 
 def summarize_outcomes(pr_outcomes: pd.DataFrame) -> dict:

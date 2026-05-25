@@ -91,16 +91,29 @@ def f_platform_dev(
     candidate_end_platforms: list[Optional[int]],
     planned_platform: Optional[int],
 ) -> bool:
-    """No candidate route ends at focal_train's planned_platform.
+    """The candidate routes' end platforms are KNOWN and none matches the focal
+    train's planned_platform → platform reassignment is likely needed.
 
-    Indicates platform reassignment is likely needed (best candidate will
-    end at a different platform than scheduled).
+    Returns False when:
+      - planned_platform is None (no schedule info), OR
+      - NO candidate route has a known end_platform_id (can't establish a
+        deviation from missing data — same conservative rule as elsewhere).
 
-    If planned_platform is None (no schedule info), returns False.
+    ⚠️ FIXED (Stage 4.7.2d diagnostic 19): the old version
+    `not any(p == planned for p in cands if p is not None)` returned True when
+    EVERY candidate end_platform_id was None (empty generator → any()=False).
+    Only ~28% of route nodes have end_platform_id (many routes legitimately don't
+    end at a platform — through/depot routes), so it fired on 83% of decisions
+    (99.2% of fires were this all-None degenerate case). When candidate platforms
+    ARE known they match planned 93.2% of the time, so the true deviation rate is
+    ~0.7% (matches spec §4.4 ~1.5%). See IMPLEMENTATION_LOG.
     """
     if planned_platform is None:
         return False
-    return not any(p == planned_platform for p in candidate_end_platforms if p is not None)
+    known = [p for p in candidate_end_platforms if p is not None]
+    if not known:
+        return False
+    return not any(p == planned_platform for p in known)
 
 
 def f_priority_compete(
@@ -114,17 +127,21 @@ def f_priority_compete(
 
 
 def f_late_train(scheduled_delta_seconds: Optional[float]) -> int:
-    """If scheduled_delta_s < -60s, return its absolute value; else 0.
+    """Seconds late when the train is late by ≥ 60 s (≥ 1 min); else 0.
 
-    scheduled_delta_s = gbtt − t (positive = ahead of schedule)
-    Per spec 02 §4.10 + PROJECT_HANDOFF Ch 5 — late threshold = -60s.
+    ⚠️ REDEFINED (Stage 4.7.2d lateness fix): scheduled_delta_s is now the CURRENT
+    SIGNED lateness from realized timetable_variation ≤ t (state_history
+    .current_lateness_s), where **positive = late** (timetable_variation×60 with
+    sign from variation_status: LATE +, EARLY −, ON TIME/OFF ROUTE 0). So we fire
+    when delta ≥ +60 and return the seconds late. (Old convention used gbtt−t with
+    negative = late and never triggered — see IMPLEMENTATION_LOG 4.7.2d.)
 
-    Returns int (signed seconds late), not bool.
+    Returns int (seconds late, ≥0), not bool.
     """
     if scheduled_delta_seconds is None:
         return 0
-    if scheduled_delta_seconds < -60.0:
-        return int(abs(scheduled_delta_seconds))
+    if scheduled_delta_seconds >= 60.0:
+        return int(scheduled_delta_seconds)
     return 0
 
 

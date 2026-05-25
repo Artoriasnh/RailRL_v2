@@ -42,6 +42,11 @@ def compute_delay_changes(decision_points: pd.DataFrame,
     print(f"  loading Movements ({movements_csv.name}) ...")
     mv = pd.read_csv(movements_csv,
                       usecols=["train_id", "actual_timestamp", "planned_timestamp"])
+    # 🔴 fix #2: correct the +1h Apr-Jul 2023 Movements clock so actual_ns aligns with
+    # decision times (delay_s = actual-planned is invariant; both shift together).
+    from ..data_io import correct_movements_bst
+    mv = correct_movements_bst(mv, time_cols=("actual_timestamp", "planned_timestamp"),
+                               ref_col="actual_timestamp")
     mv["headcode"] = mv["train_id"].astype(str).str[2:6]
     mv["actual"]   = pd.to_datetime(mv["actual_timestamp"], errors="coerce")
     mv["planned"]  = pd.to_datetime(mv["planned_timestamp"], errors="coerce")
@@ -50,23 +55,39 @@ def compute_delay_changes(decision_points: pd.DataFrame,
     mv["actual_ns"] = mv["actual"].astype("datetime64[ns]").astype("int64")
     mv["delay_s"]   = (mv["actual"] - mv["planned"]).dt.total_seconds()
 
-    # by_trust[trust_id] = (sorted times array, delay array)
-    by_trust = {}
-    # headcode_to_trusts[hc] = sorted list of (t_first, t_last, trust_id)
-    headcode_to_trusts: dict = {}
+    # 🔴 FIX (2026-05-24): the TRUST train_id RECURS MONTHLY (EE = day-of-month,
+    # Table 3.6), so grouping by raw train_id lumps points from many months into one
+    # "run" spanning ~a year (45% of ids span >25 days; 81% of points). That made the
+    # per-decision match pick the WRONG day's run → brackets straddled month gaps →
+    # out_window crushed delay_change coverage to 6% (and ~0% for Mar-Jul). Same root
+    # cause as the episode-cross-month bug. Fix: split each train_id's points into single
+    # RUNS (consecutive points with gap <= RUN_GAP_S) and match/bracket within a run.
+    # Within-run gaps are ~2 min; monthly reuse (and morning/evening passes) are hours/
+    # days apart → cleanly separated. (See IMPLEMENTATION_LOG 2026-05-24 delay bug.)
+    RUN_GAP_S = 7200.0                       # 2 h
+    run_gap_ns = int(RUN_GAP_S * 1e9)
+    # by_run[run_key] = (sorted times, delays); headcode_to_runs[hc] = [(t_first,t_last,run_key)]
+    by_run: dict = {}
+    headcode_to_runs: dict = {}
     for tid, sub in mv.groupby("train_id"):
         sub = sub.sort_values("actual_ns")
         arr_t = sub["actual_ns"].to_numpy(np.int64)
         arr_d = sub["delay_s"].to_numpy(np.float64)
-        by_trust[tid] = (arr_t, arr_d)
         hc = str(sub["headcode"].iloc[0])
-        headcode_to_trusts.setdefault(hc, []).append(
-            (int(arr_t[0]), int(arr_t[-1]), tid))
-    # Sort each headcode's trust ids by t_first for fast lookup
-    for hc in headcode_to_trusts:
-        headcode_to_trusts[hc].sort()
-    print(f"  Movements: {len(mv):,} rows, {len(by_trust):,} TRUST train_ids, "
-          f"{len(headcode_to_trusts):,} headcodes")
+        splits = np.where(np.diff(arr_t) > run_gap_ns)[0] + 1
+        for k, idx in enumerate(np.split(np.arange(arr_t.size), splits)):
+            if idx.size == 0:
+                continue
+            rt, rd = arr_t[idx], arr_d[idx]
+            run_key = (tid, k)
+            by_run[run_key] = (rt, rd)
+            headcode_to_runs.setdefault(hc, []).append((int(rt[0]), int(rt[-1]), run_key))
+    # Sort each headcode's runs by t_first for fast lookup
+    for hc in headcode_to_runs:
+        headcode_to_runs[hc].sort()
+    print(f"  Movements: {len(mv):,} rows, {len(by_run):,} runs "
+          f"(gap-split from {mv['train_id'].nunique():,} train_ids), "
+          f"{len(headcode_to_runs):,} headcodes")
 
     n = len(decision_points)
     times  = pd.to_datetime(decision_points["time"]).astype("datetime64[ns]").astype("int64").to_numpy()
@@ -76,26 +97,28 @@ def compute_delay_changes(decision_points: pd.DataFrame,
     # Stage 1: per-decision bracket lookup within the matched TRUST id
     out = np.full(n, np.nan, dtype=np.float64)
     bracket = np.full(n, -1, dtype=np.int64)
-    matched_trust = np.empty(n, dtype=object)
+    matched_run = np.empty(n, dtype=object)
     n_no_match = 0; n_no_baseline = 0; n_no_followup = 0; n_out_window = 0
     for i in range(n):
         hc = trains[i]
-        candidates = headcode_to_trusts.get(hc)
+        candidates = headcode_to_runs.get(hc)
         if not candidates:
             n_no_match += 1; continue
         t = times[i]
-        # Pick the TRUST id whose [t_first - W, t_last + W] contains t,
-        # preferring the one whose center is closest to t.
-        best_tid = None; best_dist = None
-        for t_first, t_last, tid in candidates:
+        # Pick the RUN whose [t_first - W, t_last + W] contains t, preferring the
+        # one whose center is closest to t. (Runs are ~5-min single passes now, so
+        # this window actually discriminates between days — the pre-fix bug was that
+        # year-spanning train_ids made every candidate match.)
+        best_run = None; best_dist = None
+        for t_first, t_last, run_key in candidates:
             if (t_first - window_ns) <= t <= (t_last + window_ns):
                 center = (t_first + t_last) // 2
                 dist = abs(t - center)
                 if best_dist is None or dist < best_dist:
-                    best_dist = dist; best_tid = tid
-        if best_tid is None:
+                    best_dist = dist; best_run = run_key
+        if best_run is None:
             n_no_match += 1; continue
-        arr_t, arr_d = by_trust[best_tid]
+        arr_t, arr_d = by_run[best_run]
         j = int(np.searchsorted(arr_t, t, side="right"))
         if j == 0:
             n_no_baseline += 1; continue
@@ -107,21 +130,21 @@ def compute_delay_changes(decision_points: pd.DataFrame,
             n_out_window += 1; continue
         out[i] = float(arr_d[j] - arr_d[j - 1])
         bracket[i] = j
-        matched_trust[i] = best_tid
+        matched_run[i] = best_run
 
     # Stage 2: average attribution per (trust_id, bracket_j) bucket
     if (bracket >= 0).any():
         valid_mask = ~np.isnan(out)
         df_idx = pd.DataFrame({
-            "trust":   matched_trust,
+            "run":     matched_run,
             "bracket": bracket,
             "valid":   valid_mask,
         })
         counts = (df_idx[df_idx["valid"]]
-                    .groupby(["trust", "bracket"], sort=False)
+                    .groupby(["run", "bracket"], sort=False)
                     .size()
                     .rename("n").reset_index())
-        df_idx = df_idx.merge(counts, on=["trust","bracket"], how="left")
+        df_idx = df_idx.merge(counts, on=["run","bracket"], how="left")
         share = df_idx["n"].fillna(1).to_numpy(dtype=float)
         out = np.where(valid_mask, out / share, np.nan)
 

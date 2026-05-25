@@ -47,6 +47,21 @@ except Exception:  # pragma: no cover
 _HEADCODE_SLICE = slice(2, 6)
 
 
+def _to_ns_int64(times) -> np.ndarray:
+    """Convert a datetime64 Series/array to int64 NANOSECONDS, regardless of
+    the source resolution.
+
+    CRITICAL: td_data.parquet stores `time` as datetime64[**us**] (microseconds),
+    so a plain `.astype("int64")` yields MICROSECONDS — but the decision time
+    `t_ns` uses `pd.Timestamp.value` (NANOSECONDS). Mixing them makes every
+    history time-query wrong (t_ns is ~1000× larger than all event times, so
+    queries always return the last-ever event = a future leak). Forcing
+    datetime64[ns] here guarantees both sides are in ns.
+    """
+    arr = times.values if hasattr(times, "values") else times
+    return np.asarray(arr).astype("datetime64[ns]").astype("int64")
+
+
 # ============================================================
 # Core: per-asset binary-state timeline
 # ============================================================
@@ -181,7 +196,7 @@ class TrackOccupancyHistory:
         tls: dict[str, _StateTimeline] = {}
         for tc_id, sub in df.groupby("id", observed=True, sort=False):
             tc_str = str(tc_id)
-            times_ns = sub["time"].astype("int64").to_numpy()
+            times_ns = _to_ns_int64(sub["time"])
             states = sub["state"].fillna(0).astype("int8").to_numpy()
             tr_ids = sub["trainid_filled"].astype(str).tolist()
             tls[tc_str] = _StateTimeline(times_ns=times_ns, states=states,
@@ -245,7 +260,7 @@ class SignalAspectHistory:
                     sig_id = fn_str[3:]
                 else:
                     sig_id = fn_str
-            times_ns = sub["time"].astype("int64").to_numpy()
+            times_ns = _to_ns_int64(sub["time"])
             states = sub["state"].fillna(0).astype("int8").to_numpy()
             tr_ids = sub["trainid_filled"].astype(str).tolist()
             # If duplicate signal_id (multiple prefixes), merge sorted
@@ -298,7 +313,7 @@ class BerthHistory:
         b2e: dict[str, list[tuple[int, str]]] = {}
         for berth, sub in df_berth.groupby("to_berth", observed=True, sort=False):
             berth_s = str(berth)
-            ev = list(zip(sub["time"].astype("int64").tolist(),
+            ev = list(zip(_to_ns_int64(sub["time"]).tolist(),
                           sub["trainid_filled"].astype(str).tolist()))
             ev.sort(key=lambda x: x[0])
             b2e[berth_s] = ev
@@ -311,7 +326,7 @@ class BerthHistory:
                 tr_s = str(train_id)
                 if not tr_s or tr_s in ("0", "00", "000", "0000", "None", "nan"):
                     continue
-                arr = np.sort(sub["time"].astype("int64").to_numpy())
+                arr = np.sort(_to_ns_int64(sub["time"]))
                 t2pr[tr_s] = arr
         return cls(berth_to_events=b2e, train_to_pr_times=t2pr)
 
@@ -347,6 +362,12 @@ class BerthHistory:
 # Movements lookup — schedule_outlook + planned_platform
 # ============================================================
 
+# Lateness occurrence window: only consider realized records within this much
+# BEFORE t (avoids pulling a *previous day's* run for a reused headcode — same
+# time-locality issue as the pass bug). 6h matches PASS_FALLBACK_GAP_S.
+_LATENESS_WINDOW_NS = 6 * 3600 * _NS_PER_S
+
+
 @dataclass
 class MovementsLookup:
     """Per-train gbtt schedule for upcoming arrivals/departures.
@@ -362,6 +383,11 @@ class MovementsLookup:
     # Precomputed sorted gbtt_ns array (built in __post_init__) so schedule_outlook
     # doesn't rebuild a 247k-element list on EVERY call (was ~4ms/snapshot).
     _all_times: np.ndarray = field(default=None, repr=False)
+    # Per-headcode realized lateness: headcode -> (sorted actual_ns array, aligned
+    # signed_lateness_s array). signed_lateness_s = timetable_variation(min)*60 *
+    # sign(variation_status): LATE=+, EARLY=-, ON TIME/OFF ROUTE/other=0.
+    # Consumed leak-safely by current_lateness_s() (only actual_ts <= t, within window).
+    train_to_lateness: dict = field(default_factory=dict)
 
     def __post_init__(self):
         self._all_times = np.array([e[0] for e in self.all_events], dtype=np.int64)
@@ -403,6 +429,32 @@ class MovementsLookup:
         else:
             headcodes = df[use_col].astype("string")
         df["__headcode"] = headcodes
+
+        # --- Realized lateness lookup (built BEFORE the gbtt filter, since lateness
+        #     needs actual_timestamp + variation_status, gbtt optional) ---
+        #     signed_lateness_s = timetable_variation(min)*60 * sign(variation_status).
+        lateness: dict[str, tuple] = {}
+        if {"actual_timestamp", "variation_status", "timetable_variation"} <= set(df.columns):
+            a_all = pd.to_datetime(df["actual_timestamp"], errors="coerce")
+            lmask = a_all.notna() & df["__headcode"].notna()
+            if lmask.any():
+                hc = df.loc[lmask, "__headcode"].astype(str).to_numpy()
+                a_ns = a_all[lmask].astype("int64").to_numpy()
+                status = df.loc[lmask, "variation_status"].astype(str).str.upper().str.strip().to_numpy()
+                var_min = pd.to_numeric(df.loc[lmask, "timetable_variation"],
+                                        errors="coerce").fillna(0).abs().to_numpy()
+                sign = np.where(status == "LATE", 1.0,
+                                np.where(status == "EARLY", -1.0, 0.0))
+                signed_s = (var_min * 60.0 * sign).astype("int64")
+                order = np.argsort(a_ns, kind="mergesort")     # stable global sort by actual_ns
+                tmp: dict[str, tuple[list, list]] = {}
+                for h, an, sv in zip(hc[order], a_ns[order], signed_s[order]):
+                    if h not in tmp:
+                        tmp[h] = ([], [])
+                    tmp[h][0].append(int(an))
+                    tmp[h][1].append(int(sv))
+                lateness = {h: (np.array(al, dtype=np.int64), np.array(vl, dtype=np.int64))
+                            for h, (al, vl) in tmp.items()}
 
         df = df.dropna(subset=["gbtt_timestamp", "__headcode"])
         if df.empty:
@@ -458,7 +510,7 @@ class MovementsLookup:
         for tr_s in t2s:
             t2s[tr_s].sort(key=lambda x: x[0])
         all_ev.sort(key=lambda x: x[0])
-        return cls(train_to_schedule=t2s, all_events=all_ev)
+        return cls(train_to_schedule=t2s, all_events=all_ev, train_to_lateness=lateness)
 
     def schedule_outlook(self, t_ns: int, k: int = 5, lookahead_s: float = 900.0,
                           exclude_train: Optional[str] = None) -> list[dict]:
@@ -512,16 +564,34 @@ class MovementsLookup:
                 return p
         return None
 
+    def current_lateness_s(self, headcode: str, t_ns: int,
+                           window_ns: int = _LATENESS_WINDOW_NS) -> int:
+        """Leak-safe CURRENT lateness in seconds (signed: + = late, − = early).
+
+        = signed timetable_variation of the train's LATEST realized Movements
+        record with `t − window_ns ≤ actual_timestamp ≤ t` (knowable to the
+        signaller at t per spec 01 §13.1). 0 if no such record (unknown ≈ 0).
+        Window restricts to the current occurrence (avoids a reused headcode's
+        previous-day run).
+        """
+        lk = self.train_to_lateness.get(str(headcode))
+        if not lk:
+            return 0
+        a_arr, v_arr = lk
+        idx = int(np.searchsorted(a_arr, t_ns, side="right")) - 1
+        if idx < 0 or a_arr[idx] < t_ns - window_ns:
+            return 0
+        return int(v_arr[idx])
+
     def scheduled_delta_s(self, train_id: str, t_ns: int) -> Optional[int]:
-        """Seconds until the next gbtt event for this train (or None)."""
-        sched = self.train_to_schedule.get(str(train_id), [])
-        if not sched:
-            return None
-        times = [e[0] for e in sched]
-        idx = bisect.bisect_right(times, t_ns)
-        if idx >= len(sched):
-            return None
-        return int((sched[idx][0] - t_ns) // _NS_PER_S)
+        """Current SIGNED lateness (sec, + = late) — see current_lateness_s.
+
+        ⚠️ REDEFINED (Stage 4.7.2d lateness fix): was "seconds until NEXT gbtt
+        event", which was always ≥0, matched the wrong (far) occurrence for reused
+        headcodes (→ 276-day garbage), and never let f_late_train fire. Now uses
+        realized timetable_variation ≤ t (leak-safe). f_late_train expects + = late.
+        """
+        return self.current_lateness_s(str(train_id), t_ns)
 
 
 # ============================================================
@@ -549,7 +619,7 @@ class EventTokenStream:
         per_t: dict[str, np.ndarray] = {}
         per_s: dict[str, np.ndarray] = {}
         for asset_id, sub in df.groupby("id", observed=True, sort=False):
-            per_t[str(asset_id)] = sub["time"].astype("int64").to_numpy()
+            per_t[str(asset_id)] = _to_ns_int64(sub["time"])
             per_s[str(asset_id)] = sub["state"].fillna(0).astype("int8").to_numpy()
         return cls(per_asset_times=per_t, per_asset_states=per_s)
 

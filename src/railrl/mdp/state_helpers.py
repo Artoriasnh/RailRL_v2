@@ -53,7 +53,10 @@ class TrainStateLookup:
         )
         evs = td_events.loc[ev_mask, ["time", "trainid_filled", "id", "type", "state",
                                        "from_berth", "to_berth"]].copy()
-        evs["time_ns"] = pd.to_datetime(evs["time"]).astype("int64")
+        # Force NANOSECONDS — td time is datetime64[us]; pd.to_datetime/.astype
+        # would keep microseconds (pandas 2.x preserves unit), mismatching the
+        # ns decision time t_ns. See state_history._to_ns_int64 for the full bug.
+        evs["time_ns"] = evs["time"].values.astype("datetime64[ns]").astype("int64")
         evs["trainid_filled"] = evs["trainid_filled"].astype(str)
         evs = evs.sort_values("time_ns")
 
