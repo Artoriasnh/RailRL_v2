@@ -52,9 +52,15 @@ data/raw/TD_data.csv
 data/raw/Movements.csv
 
 # Outputs — generated artefacts, regenerable from scripts
-# Keep outputs/ structure for downstream code, but don't commit big parquet
+# Keep outputs/ structure for downstream code, but don't commit big binaries
 outputs/**/*.parquet
 outputs/**/*.png
+# model checkpoints (24-48MB each, regenerable from training)
+outputs/**/*.pt
+# publication raster figures (40-55MB; commit the small svg/pdf instead)
+outputs/**/*.tiff
+outputs/**/*.npy
+outputs/**/*.npz
 outputs/cache/
 
 # But DO commit small JSON summaries and markdown reports
