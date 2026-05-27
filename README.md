@@ -8,24 +8,42 @@ joint action `A_t = {wait} ∪ {(focal_train, route)}`. A heterogeneous-graph + 
 sequence state is encoded and scored by a per-action Q-network (CQL), with auxiliary
 supervised heads, and decisions are made interpretable across five levels.
 
-> **Status (2026-05): Stages 0–5 complete; Stage 6 (full 3-seed CQL training) in progress.**
-> The full ship's log is `docs/IMPLEMENTATION_LOG.md`; a one-page index is `docs/CHANGELOG.md`.
+> **Status (2026-05-27): modeling + evaluation + interpretability essentially complete.**
+> 3-seed CQL training done; all 5 XAI layers + L4 rule-compliance + §12 selective-override built and
+> evaluated on seed42. **Single source of truth for results → `docs/RESULTS_SUMMARY.md`**; full ship's
+> log `docs/IMPLEMENTATION_LOG.md`; one-page index `docs/CHANGELOG.md`; new-conversation handoff
+> `docs/NEW_CONVERSATION_PROMPT.md`.
 
 ## Status by stage
 
 | Stage | Description | Status |
 |---|---|---|
-| 0 | Spec lock (5 contract docs) | ✅ done |
-| 1 | Data pipeline + environment | ✅ done |
-| 2 | Decision points + candidate actions + 8 specialness flags | ✅ done |
-| 3 | Snapshot builder (state + leak audit + episodes) | ✅ done |
-| 4 | Model (HGT + Transformer + per-action Q + 2 aux heads) + CQL 3-phase training | ✅ done |
-| 5 | 50k sanity training (all spec §11 gates passed) | ✅ done |
-| **6** | **Full 3-seed CQL training (42/43/44)** | 🔨 **in progress** |
-| 7 | Baselines (random / FCFS / BC-MLP / BC) | ⏳ pending |
-| 8 | Evaluation (3-tier + Replicate-AND-Improve) | ⏳ pending |
-| 9–11 | XAI five levels + rule base + simulator + selective override | ⏳ pending |
-| 12 | Paper | ⏳ pending |
+| 0–5 | Spec lock → data pipeline → decision points + 8 flags → snapshots + leak audit → model + CQL → 50k sanity | ✅ done |
+| 6 | Full **3-seed** CQL training (42/43/44; best val .9823 / .9832 / .9830) | ✅ done |
+| 7 | Baselines — non-learned B0/B0'/B0'' (Table I) ✅; learned **BC-HG ✅, IQL 🔨 running**; BC-flat deferred | ◑ partial |
+| 8 | Evaluation — Tier-1/2 + Tier-3 (safety-first) + OPE/FQE + P2.6 simulator (seed42) | ✅ done |
+| 9–11 | XAI — **L1** IG-saliency · **L2** Q-gap SHAP · **L3** counterfactual · **L4** rule-compliance · **L5** MaxEnt-IRL | ✅ done |
+| 12 | **§12 Selective Override** (δ_L3 + L4 + L2 gates → agreement / consider-override / silent) | ✅ done |
+| — | Paper (drafts only — not AI-written, per user) | ⏳ ongoing |
+
+> **Deferred (recorded in RESULTS_SUMMARY §11, not blocking):** L1 attention-rollout + panel heatmap
+> (needs HGTConv attention hook + manual TC→pixel map), **3-seed eval mean±std** (eval currently seed42),
+> learned baselines completion (IQL run + BC-flat), L5 reward-recovery refinement.
+
+## Headline results (seed42 test, set-only unless noted)
+
+- **Imitation** — CQL action top-1 **95.7%** (set-only); crushes non-learned baselines on the hard strata
+  (call_on 88% vs ≤5%, platform_dev 90% vs 0%). **BC-HG ≈ CQL on accuracy (95.0 vs 95.7)** — on this
+  near-deterministic task imitation alone is strong; CQL's value-add is the calibrated Q-function (OPE /
+  counterfactual / override / OOD-safety), not raw accuracy (an honest finding; reframes the BC-vs-RL story).
+- **Policy value (OPE/FQE)** — total ΔV ≈ 0 (delay-neutral, wait improved, throughput tiny cost): the model
+  matches the expert overall and slightly reduces waiting. Sparse reward under-weights delay (reward-design
+  finding, corroborated by L5-IRL: the signaller prioritizes delay).
+- **Safety (Tier-3)** — 0% genuine-unsafe divergences; conflict-neutral.
+- **Rule compliance (L4)** — model 81.0% vs signaller 85.7% on hard Plan rules (concentrated in call_on);
+  both deviate ~15-20% (the Plan is guidance, not law).
+- **Selective override (§12)** — agreement 95.7% (set); consider-override only ~0.2% (robust to δ_L3) — the
+  model rarely has a strong, rule-safe, faithful reason to override the expert → respects experience.
 
 ## Three contributions (ESWA structure)
 
@@ -73,16 +91,17 @@ RailRL_v2/
 │   ├── train/                           # checkpoints + train_log (json kept, *.pt ignored)
 │   └── _legacy_v1_binary/               # archived v1 (reference only)
 ├── docs/
-│   ├── CHANGELOG.md                     # one-page implementation index (read first)
-│   ├── IMPLEMENTATION_LOG.md            # full append-only ship's log (decisions / bugs / lessons)
-│   ├── TOOL_TRAPS.md  LEAK_AUDIT.md     # environment traps; leakage audit (all passed)
+│   ├── NEW_CONVERSATION_PROMPT.md       # AI entry point (start here)
+│   ├── RESULTS_SUMMARY.md               # single source of truth for all results
+│   ├── CHANGELOG.md  IMPLEMENTATION_LOG.md   # one-page index + full append-only ship's log
+│   ├── TOOL_TRAPS.md  LEAK_AUDIT.md     # environment traps (§1-23); leakage audit (all passed)
 │   ├── spec/01-05_*.md                  # 5 locked contracts (data / MDP / model / training / XAI+eval)
-│   └── manuscript_*.{md,docx}           # paper drafts
+│   └── manuscript_*.{md,docx}  PROJECT_HANDOFF.docx   # paper drafts + high-level handoff
 ├── src/railrl/
-│   ├── data/  mdp/                      # ingest/infra/reward; decision points/state/episode/reward_v2/flags
-│   ├── encoders/  policies/  algorithms/# HGT+seq+fusion; Q-net+heads; losses+trainer+transitions
-│   └── eval/  xai/                      # metrics; (XAI pending)
-├── scripts/{data,mdp,train,eval,figures,simulator}/   # numbered CLI entry points
+│   ├── data/  mdp/                      # ingest/infra/reward + rule_base; decision points/state/episode/reward_v2/flags
+│   ├── encoders/  policies/  algorithms/# HGT+seq+fusion; Q-net+heads; losses(cql/iql/bc)+trainer+transitions
+│   └── eval/  xai/  deploy/             # metrics; L1-L5 (l1_attention/l2_qdecomp/l3_system/l4_rules/l5_irl); selective_override
+├── scripts/{data,mdp,train,eval,rules,simulator}/     # numbered CLI entry points
 └── pyproject.toml  tests/
 ```
 
@@ -103,13 +122,32 @@ python scripts/train/09_train.py --sanity
 
 # 3. Full run (Stage 6), per seed; --resume is safe across 12h windows
 python scripts/train/09_train.py --seed 42 --out outputs/train/cql_seed42 --num-workers 16 --resume
+
+# 4. Learned baselines (Table I B2/B3): --algo {cql,bc,iql}; --max-batches speeds up the loader-bound epochs
+python scripts/train/09_train.py --algo bc  --seed 42                 # B2 BC-HG (20ep supervised)
+python scripts/train/09_train.py --algo iql --seed 42 --max-batches 3000 --resume   # B3 IQL (3-phase)
+
+# 5. Evaluation + XAI (after training) — exact commands + expected numbers in docs/RESULTS_SUMMARY.md
+python scripts/eval/01_evaluate_model.py --seed 42                    # Tier-1/2 per-stratum (set-only)
+#   06 baselines · 03 Tier-3 · 04/05 OPE-FQE · 07 L2 · 08/09 L5 · 10 L1 · 12 L4 · 13 §12-override
+#   scripts/rules/03_finalize.py → outputs/rule_base/rules.parquet (19 Hao-approved rules)
 ```
 
-## Where to read more
+## Documentation map — read in this order (importance-ranked)
 
-`docs/CHANGELOG.md` (index) → `docs/IMPLEMENTATION_LOG.md` (full log) → `docs/spec/01-05_*.md`
-(contracts) → `docs/LEAK_AUDIT.md` (validity threats). New collaborators: start from
-`docs/NEW_CONVERSATION_PROMPT.md`.
+| # | Doc | What it is | Freshness |
+|---|---|---|---|
+| 1 | `docs/NEW_CONVERSATION_PROMPT.md` | **AI entry point** — paste into a new session; project overview + reading order + work discipline | current |
+| 2 | `docs/RESULTS_SUMMARY.md` | **Single source of truth for results** — every verified number, run-status (full vs smoke), remaining-work plan | current |
+| 3 | `docs/CHANGELOG.md` | One-page implementation index / roadmap (what was built, when, why) | current |
+| 4 | `docs/IMPLEMENTATION_LOG.md` | Full append-only ship's log — every decision / bug / fix / lesson (most detailed) | current |
+| 5 | `docs/spec/01-05_*.md` | The 5 locked contracts (data / MDP / model / training / XAI+eval) — design ground truth | locked |
+| 6 | `docs/TOOL_TRAPS.md` | Environment / tooling traps (§1–§23) — read before debugging weird failures | current |
+| 7 | `docs/LEAK_AUDIT.md` | Leakage audit (all checks pass) — paper validity-threats material | stable |
+| — | `docs/manuscript_*.{md,docx}`, `docs/PROJECT_HANDOFF.docx` | Paper drafts + high-level handoff (not AI-maintained) | drafts |
+
+This README is the **human** entry point; `NEW_CONVERSATION_PROMPT.md` is the **AI** entry point. There is
+**no separate "working-tree guide" file** — the *Project layout* tree above plus this doc map serve that role.
 
 ## Known limitations (paper validity threats)
 

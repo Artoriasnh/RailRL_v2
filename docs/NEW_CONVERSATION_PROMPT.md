@@ -1,7 +1,7 @@
 # 新对话开场 Prompt（RailRL v2）
 
 > 把这份贴给新对话的 AI 助手。它会让助手了解项目在做什么、有哪些材料、进度到哪、接下来做什么。
-> **最后更新：2026-05-22（Stage 6 全量训练进行中）。**
+> **最后更新：2026-05-27（训练 3-seed 完成；Stage 7/8 评估 + XAI L1–L5 + L4 规则合规 全部完成。剩：§12 Selective Override、L1 attention-rollout+面板热图、3-seed eval 聚合、BC/IQL baseline、L5 奖励恢复改进）。结果汇总见 `docs/RESULTS_SUMMARY.md`。**
 
 ---
 
@@ -18,9 +18,10 @@
 
 ## 二、开工前必读（按顺序）——这些是项目的"航海日志"与契约
 
-1. **`docs/CHANGELOG.md`** —— **先读这个**。从头到尾的实现路径速览（索引/路线图），一眼看清做了什么、改了什么、为什么。
-2. **`docs/IMPLEMENTATION_LOG.md`** —— **最重要、最详细**。完整执行记录（append-only，~1200 行）：每个 stage 的交付、关键决策、踩过的坑+修复、教训、下一步。**通读**，尤其末尾 Stage 4.7.2d / 5 / 6 各节。
-3. **`docs/TOOL_TRAPS.md`** —— 工具/环境陷阱（§11 沙盒磁盘满截断、§12 us/ns 单位、§13 PyG ModuleDict 'train' 撞名、§14 pyarrow 整表 OOM、§15 HPC DataLoader fd ancdata、§16 pd.notna 嵌套数组）。
+0. **`docs/RESULTS_SUMMARY.md`** —— **最先读**。所有已验证结果集中一处（数据/训练/Tier1-3/OPE/IRL/L2/L5/headline/待办）。
+1. **`docs/CHANGELOG.md`** —— 实现路径速览（索引/路线图），一眼看清做了什么、改了什么、为什么。
+2. **`docs/IMPLEMENTATION_LOG.md`** —— **最详细**。完整执行记录（append-only）：每个 stage 的交付、关键决策、踩过的坑+修复、教训、下一步。**通读末尾**（Stage 6 重训 / 评估 / 模拟器 / Tier-3 / OPE / L2 / L5 各节）。
+3. **`docs/TOOL_TRAPS.md`** —— 工具/环境陷阱（§11 沙盒磁盘满截断[反复出现]、§12 us/ns、§13 ModuleDict 'train'、§14 pyarrow OOM、§15 HPC fd、§16 pd.notna 嵌套、§17 torch2.6 weights_only、§18 pyarrow-string dtype、§19 Grep/Glob 须传 path）。
 4. **`docs/spec/01-05_*.md`** —— 5 份**契约**（数据管线 / MDP / 模型架构 / 训练协议 / XAI+评估）。锁定值在此（CQL α=5、γ=0.95、3 阶段 5+15+20ep、按时间划分、batch 256、padding caps 60/15/15/8/14 等）。
 5. **`docs/LEAK_AUDIT.md`** —— 泄露审计清单（直接答案/时间/候选三类）+ 复验工具 + 现状（已全过）。论文"效度威胁"素材。
 6. **`docs/PROJECT_HANDOFF.docx`** —— 高层领域 + 框架 + 路线图总览。
@@ -29,18 +30,16 @@
 
 ---
 
-## 三、当前状态（2026-05-22）
+## 三、当前状态（2026-05-26）
 
-**Stage 0–5 全部完成 ✅；Stage 6（全量 3-seed CQL 训练）进行中 🔨。**
+**Stage 0–6 完成 ✅（数据修正后重训, seed 42/43/44）；Stage 7 baselines + Stage 8 评估 + XAI L1–L5 + L4 规则合规 全部完成 ✅；剩：§12 Override / L1 缺件 / 3-seed eval 聚合 / BC-IQL baseline。**
+**👉 所有数字/结果集中在 `docs/RESULTS_SUMMARY.md`（单一事实来源，先读它）。** 要点：
 
-- **数据干净、已审计**：`outputs/snapshots/snapshots_v2.parquet`（1,996,572 行，canonical 顺序 = 按 (episode_idx, position) 排，含真 reward / episode 列 / split 列 / 修正后的 lateness & platform_dev）。本会话修了三个数据 bug：
-  - **episode 跨月**（TRUST train_id 的 EE=当月日期→每月复用→pass 跨数月→12.9 万行 test 泄露进 train + 6.7 万假转移）→ 按 (focal_train, gap>2h, split 边界) 重分段；
-  - **lateness**（scheduled_delta_s 旧=gbtt 下一事件、恒≥0、取错 occurrence→垃圾）→ 改 realized `timetable_variation×60×sign(variation_status)`，只用 `actual_ts≤t`（leak-safe）；late_train 0→21%；
-  - **platform_dev 过宽**（空生成器 bug，候选 end_platform 全 None→误触发 83%）→ 要求≥1 已知候选平台，83%→0.7%。
-- **泄露审计全过**（06 assert_no_leak + 07 数值/结构 + 21 基线判据）→ 无泄露；高 val 精度由任务可模仿性（近 FCFS + timetable + 小动作集）解释。
-- **流式 loader 就位**：`StreamingTransitionDataset`（超块顺序流 + 块洗牌 + 块级近似分层采样 spec §4.4 + worker 安全）。smoke A/B/C/D 全过，~1.5k transitions/s @ 16 worker。
-- **Stage 5 sanity 全 §11 gate PASS**：Phase A route .73/time .41；B Q-top1 .87/|Q| 有界；C **Q-top1 .946**。损失全降、精度全升、|Q| 有界、无 NaN。
-- **Stage 6 训练中**：`scripts/train/09_train.py --seed 42 --out outputs/train/cql_seed42 --num-workers 16 --resume`，A100 服务器，~17h。trainer 已接流式+分层+§11 gate+**resume（12h 窗口安全）**+HPC fd fix。**seed 43/44 next**。
+- **数据干净 + 奖励两 bug 修正后重训**：snapshots_v2(1,996,572)。本阶段修了 delay 的 **train_id 跨月** + **Apr–Jul Movements +1h** 两个 bug，重算 reward(08→09→10) + 状态 patch(23) + 重训前体检(24)全过。（更早的 episode 跨月 / lateness / platform_dev 三 bug 亦已修。）
+- **Stage 6 全量训练完成**（修正数据, 3-seed 一致）：seed42 best .9823 / seed43 .9832 / seed44 .9830。**但 eval(Table I/OPE/L1/L2/L4/L5) 目前仅 seed42 → 3-seed mean±std 待**。
+- **Stage 7/8 评估（单 seed42）**：Tier-1 set-only **.957**；Table I 分层 vs baseline(难 strata 碾压:call_on .881 vs ≤.05、platform_dev .903 vs 0)；P2.6 模拟器验证(occ **.94**/tp **.86**)；Tier-3 安全优先 **genuine_unsafe 0%**;OPE/FQE total≈0、delay 持平、wait 改进。
+- **XAI 五层全部完成 ✅**：L1(IG 显著性+忠实度,全量)、L2(Q-gap Shapley)、L3(反事实)、**L4(规则合规:19 条 Hao 审签规则,模型 81.0% vs 人 85.7% 硬规则合规,全量)**、L5(IRL,定性:信号员选路 delay 居首)。**L1 仍缺 attention rollout + 面板热图**(记账);**§12 Selective Override 未做**。
+- **诚实 headline**：专家级、安全、可解释复制 + 胜过朴素 baseline + 与人持平(不主张超越人类)。OPE+IRL 双向解释 delay 中性 = 稀疏奖励低估 delay(reward-design,非架构)。
 
 ---
 
@@ -53,18 +52,14 @@
 | **效度威胁** | `LEAK_AUDIT.md` + 各泄露修复记录 | 论文 validity threats |
 | **领域知识** | log 内（X-prefix 信号、platform 7 pilot line、TRUST id 结构 Table 3.6、数据 10 段时间 gap…） | 数据描述 |
 | **代码** | `src/railrl/`（mdp/encoders/policies/algorithms）、`scripts/`（data/mdp/train） | git 有历史 |
-| **结果（部分）** | `outputs/train/sanity_seed42/`（sanity gate 全过）；Stage 6 `cql_seed42/`（训练中） | mean±std 待 3 seeds |
-| **待产出（论文需要、尚无）** | Stage 6 三 seed 最终数 / Stage 7 baselines 对比表 / Stage 8 评估(3-tier + 反事实) / XAI 五级 / 图表 | Stages 7-12 |
+| **结果（汇总）** | **`docs/RESULTS_SUMMARY.md`** + `outputs/eval/*.json`（Tier1/2、baseline Table I、OPE、IRL、L2）+ `outputs/train/cql_seed42&43/` | 单 seed42；mean±std 待 seed44 |
+| **待产出** | seed44→3-seed mean±std / 学习型 baseline(BC/IQL) / XAI L1+L4 / docx + 图表 | 收尾 |
 
 ---
 
 ## 五、路线/计划（spec 04 §10、spec 05）
 
-**Stage 6**（进行中）：全量 3 seeds（42/43/44）CQL → final + train_log（mean±std）。
-→ **Stage 7** baselines：B0(随机)/B0'(FCFS)/B1(BC-MLP)/BC（spec 04 §1.3）。
-→ **Stage 8** 评估：3-tier（imitation / counterfactual / operational）+ Replicate-AND-Improve（CQL vs FCFS 的反事实奖励差 δ）。
-→ **Stage 9-11** XAI：L1/L2/L5（attention/Q 分解/对比）→ P2.5 规则库 + P2.6 仿真器 → L3/L4 + Selective Override。
-→ **Stage 12** 论文撰写。
+**Stage 6** ✅(seed42/43/44) → **Stage 7** ✅(B0/B0'/B0'' 非学习 baseline Table I;BC/IQL 待) → **Stage 8** ✅(Tier-1/2 + P2.6 模拟器验证 + Tier-3 安全优先 + OPE/FQE) → **Stage 9-11 XAI**：L1✅/L2✅/L3✅/L4✅/L5✅;**§12 Selective Override 待、L1 attention-rollout+面板热图 待** → **Stage 12** 论文（不由 AI 代写,只记录结果）。
 
 ---
 
@@ -102,4 +97,4 @@
 - loader 吞吐 encode-bound（~5ms/行）；若 Stage 6 太慢可加 worker 或 profile `encode_snapshot`。
 - `end_platform_id` 仅 28% 路线有映射（含合理 through/depot）→ platform_dev 保守欠检测，记入论文局限（同 approach_distance 48% / delay_change 6% 一类）。
 
-请先按"二"的顺序读文档，读完跟我确认现状，我们再继续（当前：等 Stage 6 seed 42 跑完）。
+请先读 `docs/RESULTS_SUMMARY.md` + 按"二"顺序读文档，确认现状后继续（当前剩余：§12 Selective Override / L1 attention-rollout+面板热图 / 3-seed eval 聚合 / BC-IQL baseline / L5 奖励恢复改进；论文不由 AI 代写，只记录结果）。

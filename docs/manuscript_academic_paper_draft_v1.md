@@ -9,8 +9,8 @@
 | Field | Railway traffic management; safety-critical intelligent decision support; offline reinforcement learning |
 | Citation style | Numeric placeholder style for drafting; final style to be adapted to ESWA or IEEE T-ITS author guidelines |
 | Language | English main text, with a Chinese working abstract for author review |
-| Current evidence status | Data pipeline, MDP reconstruction, leakage audits, streaming loader and Stage 5 sanity training verified; Stage 6 multi-seed training, Stage 7 baselines and Stage 8 counterfactual evaluation pending |
-| Claim boundary | The present draft supports a system-and-method contribution. Claims of operational improvement over signallers must wait for baseline and counterfactual results |
+| Current evidence status | Full-data Conservative Q-Learning training verified (seed 42; seed 43 reproducibility check). Completed: non-learned baseline comparison, counterfactual simulator validation, safety-first divergence analysis, off-policy value evaluation, and decision/reward explanation layers (L2 Q-gap, L5 inverse RL). Pending: three-seed mean ± std (seed 44), learned baselines (behavioural cloning, IQL), and the attention/rule explanation layers (L1, L4) |
+| Claim boundary | The evidence supports expert-level, safe, explainable replication that outperforms non-learned baselines and matches the signaller on overall return and delay while modestly reducing waiting. It does NOT claim super-human improvement, which is neither supported nor required. All quantitative claims are single-seed (42) pending multi-seed confirmation |
 
 ---
 
@@ -18,13 +18,13 @@
 
 ## Abstract
 
-Railway route setting is a safety-critical traffic management activity in which signallers decide whether to wait or to set a feasible route for a train under changing infrastructure occupation, timetable intent and local operating constraints. Existing data-driven railway decision-support studies often begin from already structured datasets, while many railway optimisation studies rely on simplified state descriptions or simulated scenarios. This leaves a gap between live operational data acquisition and deployable intelligent decision support. This paper presents RailRL, an end-to-end framework that connects live railway operational feeds, traceable data acquisition, leak-safe decision reconstruction and offline reinforcement learning for route-setting decisions. The framework first converts heterogeneous Network Rail feeds into a structured empirical data basis through feed-specific acquisition, decoding and storage. It then reconstructs route-setting decision points as a Markov decision process with dynamic action sets, where each action is either `wait` or `(focal train, candidate route)`. Rewards combine realised delay change, route utilisation, headway risk and waiting cost, while strict leakage audits prevent future outcomes or answer variables from entering the model state. The proposed model combines a heterogeneous graph transformer for infrastructure and train state, a transformer encoder for recent signalling events and a per-action Q-network trained with Conservative Q-Learning. On 14 months of Derby workstation data, the current pipeline constructs 1,996,572 usable decision snapshots and passes systematic leakage checks. A 50k-sample sanity run reaches 0.946 validation action top-1 agreement with bounded Q-values and no numerical instability. These findings demonstrate the feasibility of traceable offline reinforcement learning for railway route-setting decision support. Final multi-seed training, baseline comparison and counterfactual operational evaluation remain necessary before claiming improvement over historical signaller decisions.
+Railway route setting is a safety-critical traffic management activity in which signallers decide whether to wait or to set a feasible route for a train under changing infrastructure occupation, timetable intent and local operating constraints. Existing data-driven railway decision-support studies often begin from already structured datasets, while many railway optimisation studies rely on simplified state descriptions or simulated scenarios. This leaves a gap between live operational data acquisition and deployable intelligent decision support. This paper presents RailRL, an end-to-end framework that connects live railway operational feeds, traceable data acquisition, leak-safe decision reconstruction and offline reinforcement learning for route-setting decisions. The framework first converts heterogeneous Network Rail feeds into a structured empirical data basis through feed-specific acquisition, decoding and storage. It then reconstructs route-setting decision points as a Markov decision process with dynamic action sets, where each action is either `wait` or `(focal train, candidate route)`. Rewards combine realised delay change, route utilisation, headway risk and waiting cost, while strict leakage audits prevent future outcomes or answer variables from entering the model state. The proposed model combines a heterogeneous graph transformer for infrastructure and train state, a transformer encoder for recent signalling events and a per-action Q-network trained with Conservative Q-Learning. On 14 months of Derby workstation data, the current pipeline constructs 1,996,572 usable decision snapshots and passes systematic leakage checks. Full-data training reaches 0.957 set-only top-1 agreement with the signaller on a held-out test month and substantially outperforms non-learned baselines on the signaller's hardest decisions (for example 0.88–0.90 versus near-zero on call-on and platform-deviation cases). On an event-driven simulator validated against the realised record (occupancy and throughput rank correlations of 0.94 and 0.86), 0.0% of the model's divergences from the signaller are genuinely unsafe. Off-policy value evaluation finds the learned policy statistically indistinguishable from the signaller on total return and on delay while modestly reducing waiting, and inverse reinforcement learning shows that the signaller's routing prioritises delay — a priority the sparse engineered delay reward under-represented, which explains the model's delay-neutrality. The framework thus delivers expert-level, safe and explainable route-setting support that beats naive rules; results are single-seed (seed 42) pending three-seed confirmation, and improvement beyond expert level is neither claimed nor required.
 
 **Keywords:** railway traffic management; route setting; offline reinforcement learning; Conservative Q-Learning; explainable AI; heterogeneous graph transformer; operational data acquisition.
 
 ## 中文摘要（工作版）
 
-铁路进路设置是信号员在安全关键环境中持续进行的调度决策。信号员不仅需要决定为列车设置哪一条进路，还需要判断是否应立即办理、是否应等待前车出清、以及在多列车竞争资源时如何体现优先级。本文提出 RailRL，一个从真实铁路运营数据获取到可解释离线强化学习决策支持的端到端框架。该框架首先通过面向 Network Rail 多源运营 feed 的采集、解码和结构化存储流程，形成可追溯的数据基础；随后将 Derby 工作站 14 个月数据重构为泄露审计通过的 MDP，包括动态动作集合、时间局部 episode、候选进路、奖励函数和状态表示；最后使用异构图 Transformer、事件序列 Transformer 和 per-action Q 网络，并以 Conservative Q-Learning 训练离线策略。当前管线生成 1,996,572 个可用决策 snapshot，并通过泄露审计和 Stage 5 sanity 训练验证，验证集 action top-1 agreement 达到 0.946，Q 值有界且无数值不稳定。本文现阶段的结论是：该框架能够可靠地从真实运营数据构建铁路进路设置离线强化学习任务；是否能优于历史信号员行为仍需后续三 seed 全量训练、baseline 对比和反事实运营评估支持。
+铁路进路设置是信号员在安全关键环境中持续进行的调度决策。信号员不仅需要决定为列车设置哪一条进路，还需要判断是否应立即办理、是否应等待前车出清、以及在多列车竞争资源时如何体现优先级。本文提出 RailRL，一个从真实铁路运营数据获取到可解释离线强化学习决策支持的端到端框架。该框架首先通过面向 Network Rail 多源运营 feed 的采集、解码和结构化存储流程，形成可追溯的数据基础；随后将 Derby 工作站 14 个月数据重构为泄露审计通过的 MDP，包括动态动作集合、时间局部 episode、候选进路、奖励函数和状态表示；最后使用异构图 Transformer、事件序列 Transformer 和 per-action Q 网络，并以 Conservative Q-Learning 训练离线策略。当前管线生成 1,996,572 个可用决策 snapshot 并通过泄露审计。全量训练在留出测试月达到 set-only top-1 一致率 0.957，并在信号员最难的决策（如 call-on、平台偏离）上大幅超过非学习 baseline（约 0.88–0.90 对近 0）。在用真实记录校准的事件驱动模拟器（占用与吞吐秩相关 0.94 与 0.86）上，模型相对信号员的偏离中 genuine-unsafe 占 0.0%。离线策略价值评估显示模型在总回报与延误上与信号员统计无异、并小幅减少等待；逆强化学习显示信号员的选路把准点放在首位，而稀疏的工程化延误奖励未能充分体现这一点，解释了模型为何延误中性。该框架因此提供专家级、安全、可解释且胜过朴素规则的进路设置支持；结果为单 seed（42），待三 seed 确认，本文不主张也不需要超越专家水平。
 
 ---
 
@@ -162,7 +162,7 @@ The first experiment layer verifies the dataset before interpreting model perfor
 
 ### 6.2 Model training and sanity gates
 
-The Stage 5 sanity run trains on approximately 50,000 samples per epoch with seed 42. It is used to verify the training loop, representation learning, Q-value stability and phase gates. The full Stage 6 training is planned for seeds 42, 43 and 44 on the full training set.
+Training proceeds in two stages. A 50,000-sample-per-epoch sanity run (seed 42) first verifies the training loop, representation learning, Q-value stability and phase gates. Full-data training is then run on the complete training set; the results below are for seed 42 with seed 43 as a reproducibility check, while seed 44, required for a three-seed mean ± standard deviation, is pending.
 
 ### 6.3 Baselines
 
@@ -181,25 +181,57 @@ All baselines should use the same time split and candidate action sets.
 
 The first metric group measures behavioural agreement: action top-1 agreement, route accuracy on set decisions, wait/set F1 and timing bucket accuracy. The second group measures stratified performance across late train, advance routing, call-on, platform deviation, priority competition, unusual train identifier and trivial cases. The third group will measure operational value through counterfactual evaluation, including reward delta, delay component, headway component and divergent-unsafe rate.
 
-## 7. Preliminary Results
+## 7. Results
+
+All results below are from a single training seed (seed 42) on the full corrected dataset, with a second seed (seed 43) used as a reproducibility check; full three-seed mean ± standard deviation (seed 44) remains pending and all claims are stated accordingly.
 
 ### 7.1 Data reconstruction
 
-The pipeline builds 1,996,572 usable decision snapshots. The build summary records 3,051 skipped samples with no determinable focal train track circuit and zero snapshot audit failures in the sampled build audit. The final canonical snapshot file includes corrected episode labels, rewards, split labels and patched lateness and platform-deviation features.
+The pipeline builds 1,996,572 usable decision snapshots, skipping 3,051 samples with no determinable focal-train track circuit and recording zero snapshot audit failures in the sampled build audit. The final canonical snapshot file includes corrected episode labels, rewards, split labels and patched lateness and platform-deviation features.
 
-### 7.2 Reward and split summary
+### 7.2 Reward correction and summary
 
-The generated decision table contains 1,999,623 decisions, with 546,418 set decisions and 1,453,205 wait decisions. The reward distribution has mean -0.098 and standard deviation 0.481, with component means of -0.002 for delay, 0.136 for throughput, -0.013 for headway and -0.218 for wait. Feature coverage is incomplete but operationally meaningful: route outcome is available for all set decisions, headway for 527,494 decisions, delay change for 128,697 decisions and approach distance for 261,178 decisions.
+Two systematic delay-attribution defects were identified and corrected before training. First, train identifiers are reused across months, which caused the delay-change computation to match decisions to the wrong monthly run and discard most pairs as out-of-window. Second, the Movements timestamps for April–July 2023 were offset by one hour (a double-applied British Summer Time correction at the source), which mis-aligned roughly 41% of the training-period decisions against the Train Describer clock. Both were repaired at source, and the rewards, the Movements-derived state fields and the affected snapshots were recomputed, after which a five-section pre-retraining audit (structure, reward–label agreement, state integrity, unchanged out-of-window rows, and a per-month anomaly scan) passed.
+
+After correction, the total reward has mean −0.106 and standard deviation 0.587, with weighted component means of −0.010 for delay, +0.136 for throughput, −0.013 for headway and −0.218 for wait, where `r_total` is exactly the sum of the four weighted components. Delay-change coverage rose to 685,715 decisions (about 34%) and became uniform across months. A property that proves important for the later analysis is that, even after correction, the delay component remains small and sparse relative to the dense and large waiting and throughput components: the effective contribution of delay to the realised return is on the order of one tenth, despite its nominal unit weight.
 
 ### 7.3 Leakage audit
 
-The leakage audit excludes direct answer fields, reward intermediates and forbidden focal markers from the model state. A separate baseline analysis indicates that high route accuracy is not explained by trivial candidate position baselines. This supports the interpretation that the model learns state-to-decision structure rather than exploiting a shortcut.
+The leakage audit excludes direct answer fields, reward intermediates and forbidden focal markers from the model state. A separate baseline analysis indicates that high route accuracy is not explained by trivial candidate-position baselines, supporting the interpretation that the model learns state-to-decision structure rather than exploiting a shortcut.
 
-### 7.4 Sanity training
+### 7.4 Full offline RL training
 
-The Stage 5 sanity run passes the predefined gates. Phase A reaches validation route accuracy 0.728 and time accuracy 0.408. Phase B reaches validation action top-1 agreement 0.867 with bounded Q-values. Phase C reaches validation action top-1 agreement 0.946, with Q-values remaining below the predefined bound and without NaN failures. Losses decrease and auxiliary performance remains stable during joint training.
+Full-dataset Conservative Q-Learning training on the corrected data passes every predefined Stage-§11 gate. Phase A reaches validation route accuracy 0.925 and time accuracy 0.699 with the auxiliary losses falling to the required fraction of their initial values. Phase B reaches validation action top-1 agreement 0.963 with bounded Q-values and a conservative loss far below threshold. Phase C reaches validation action top-1 agreement 0.981, with the best validation action top-1 agreement of 0.982. The independent seed 43 reproduces this closely (best 0.983), and its phase-C Q-magnitude is in fact more tightly bounded than seed 42, indicating that the result is not seed-specific. Losses decrease monotonically across phases with no numerical instability.
 
-This result should be interpreted as a sanity result, not a final operational claim. It shows that the pipeline and model can learn the historical behaviour distribution. It does not prove improvement over signallers.
+### 7.5 Behavioural fidelity on the test split
+
+On the held-out test split of 338,363 decisions, action top-1 agreement with the signaller is 0.988 over all decisions and 0.957 on set (route-choice) decisions; the all-decisions figure is inflated by the large wait majority, so the set-only figure is the honest measure of routing fidelity. The model reproduces the signaller's wait/set propensity almost exactly (0.727 versus 0.727), and the route head agrees with the historical route on 0.950 of set decisions. These figures indicate high-fidelity replication of signaller behaviour, consistent with the near-first-come-first-served regularity of routine route setting.
+
+### 7.6 Stratified comparison against non-learned baselines
+
+Table 3 reports set-only top-1 agreement by operational case for the model and three non-learned baselines: a uniform-random valid action, a planned-platform-preferring heuristic, and a first-candidate (greedy) heuristic. Because the baselines differ in their wait/set propensity, the all-decisions figure is not comparable across methods; the set-only figure isolates the routing decision. The model dominates the baselines overall (0.957 versus at most 0.531) and, crucially, on the hard strata where the signaller departs from the default route. On call-on and platform-deviation decisions the model reaches 0.881 and 0.903, while both heuristics fall to 0.048 and 0.000 respectively — below the random baseline — because the signaller's correct action on these strata is precisely the non-default one that a default-routing rule systematically misses. This stratified gap, rather than the near-saturated trivial cases, is the core evidence that the learned model captures decision skill that simple rules do not.
+
+### 7.7 Counterfactual simulator validation
+
+The event-driven P2.6 simulator, used only for evaluation and never for training, was validated on a held-out month against the actual Train Describer record. After calibrating the minimum-headway percentile, the simulator reaches a per-track-circuit occupancy-onset rank correlation of 0.94 and a throughput rank correlation of 0.86 with the realised data. It is conservative in absolute throughput (about 73% of the realised count, because the slowest trains do not complete within the horizon), but the relative dynamics required for counterfactual comparisons are validated, and this absolute bias cancels in action-versus-action deltas.
+
+### 7.8 Safety-first divergence analysis
+
+The model diverges from the signaller on only 4.3% of set decisions. Divergences are classified safety-first using simulator-independent signals — route legality and feasibility of the route when the focal train is simulated alone — because a fixed-others counterfactual cannot fairly adjudicate conflict-safety: every divergence that fails to complete with the other trains held fixed completes when the focal train is run in isolation, showing that such "failures" reflect the de-confliction asymmetry of the frozen world rather than an unsafe route. Under this analysis the genuine-unsafe divergence rate is 0.0%: every route the model proposes is a legal candidate that completes feasibly. A direct conflict-load measure (the change in headway-wait events introduced by the model's route relative to the signaller's) is essentially zero (mean ≈ +0.07), so the model introduces no meaningful additional inter-train conflict. The model's divergent routes are intrinsically about 14 seconds longer in free-flow traversal.
+
+### 7.9 Off-policy value of the learned policy
+
+Fitted Q-Evaluation on the logged trajectories estimates the value of following the model's policy relative to the signaller's, reported as a discounted-return difference ΔV with an episode-clustered 95% confidence interval (Table 4). On total return the policies are statistically indistinguishable (ΔV ≈ 0), so the model matches the expert overall. A reward-component decomposition that is internally consistent (the component differences sum to the total difference) shows where the policies differ: the model significantly reduces waiting (ΔV_wait = +0.035, CI [+0.027, +0.044]) at a small throughput cost (−0.012, CI [−0.018, −0.007]), and is statistically neutral on delay (ΔV_delay = +0.020, CI [−0.040, +0.070]) and on headway. Reconciling this with the +14-second free-flow figure of the divergence analysis, the model selects routes that are slightly longer in isolation but less congested in context, trading marginal path length for reduced waiting and netting no change in realised delay. These estimates carry the standard offline-RL caveat that the evaluator must extrapolate to the small fraction of out-of-distribution divergent actions and may be optimistic there; they are single-seed.
+
+### 7.10 Decision- and reward-level explanation
+
+The decision-level layer decomposes the Q-gap between the model's chosen route and the runner-up into contributions from six feature groups using exact Shapley values, which satisfy completeness exactly. The gap is dominated by route features, as expected, because the two competing actions share the same train, infrastructure, event and flag context and differ only in the route itself; the shared-context groups therefore influence the absolute action values more than the route-versus-route gap.
+
+The reward-recovery layer applies maximum-entropy inverse reinforcement learning to the signaller's route choices, using behaviour-policy component action-values as features. Restricted to route-choice decisions — the well-posed setting, since including the dominant wait action confounds the recovery — the recovered weights place the largest positive weight on delay, followed by throughput. In other words, the signaller's revealed routing priorities lead with punctuality. This corroborates the off-policy finding from the opposite direction: the signaller prioritises delay, but because the engineered reward represented delay only sparsely and weakly, the trained model did not learn to prioritise it and is consequently delay-neutral rather than delay-improving. The individual recovered weights are reported qualitatively only: the headway weight in particular is not interpretable in isolation because the component value-features are collinear, and the recovery inherits the same out-of-distribution caveat as the off-policy evaluation.
+
+### 7.11 Summary of findings
+
+Taken together, the single-seed evidence describes the model as a high-fidelity (0.957 set-only), safe (0.0% genuine-unsafe, conflict-neutral) replicator of the expert signaller that matches the human on overall return and on delay while modestly reducing waiting, and that substantially outperforms non-learned baselines on the signaller's hardest decisions. Two independent estimators — off-policy value evaluation and inverse reinforcement learning — converge on a coherent account of the delay objective: the signaller prioritises it, the engineered reward under-represented it, and the model is therefore delay-neutral rather than delay-improving. The headline claim is thus expert-level, safe, explainable replication that beats naive baselines, not super-human improvement; the latter is neither supported nor required by the present evidence.
 
 ## 8. Discussion
 
@@ -207,11 +239,11 @@ The current evidence supports three conclusions. First, live railway operational
 
 Second, route setting can be represented as a dynamic-action MDP. The wait action and feasible route-setting actions are placed in the same action set, which allows timing and route choice to be learned jointly. This formulation better matches signaller practice than a fixed global classifier.
 
-Third, the graph-sequence architecture can learn historical route-setting behaviour under a conservative offline RL training regime. The sanity result indicates that the task is highly learnable. This is consistent with the operational structure of routine route setting, where timetable intent and local infrastructure strongly constrain many actions.
+Third, under full-data conservative offline RL the model replicates historical route setting with high fidelity (0.957 set-only) and, more importantly, does so on the signaller's hardest decisions where naive default-routing rules fail. The stratified comparison locates the model's value precisely in the non-routine cases — call-on, platform deviation, priority competition — rather than in the near-saturated trivial cases.
 
-Several limitations remain. The current result is not yet a full three-seed evaluation. Baselines are pending. Counterfactual operational evaluation is pending. Some reward components have incomplete coverage, particularly delay-change and approach-distance features. Platform-deviation detection is conservative because route-to-platform mapping is available only for a subset of routes. The current dataset covers the Derby workstation, so transfer to other signalling areas would require new local decoding and infrastructure mapping.
+The counterfactual and value analyses sharpen this into an honest claim. The model matches the signaller on overall return and is statistically neutral on delay while modestly reducing waiting, and none of its divergences are genuinely unsafe. It is therefore best characterised as expert-level, safe replication rather than super-human improvement. The inverse-RL and off-policy analyses jointly explain why the model does not improve delay: the signaller's revealed routing priorities lead with punctuality, but the engineered reward represented delay only sparsely and weakly, so the model optimised the dense waiting and throughput signals and treated delay as near-noise. This is a reward-design finding rather than a model failure; materially improving delay would require a denser, episodically-credited or re-scaled delay reward and re-training, not a change of architecture.
 
-The most important next step is the Replicate-and-Improve evaluation. If the model only imitates signallers, the paper remains a strong system and modelling contribution. If the model can identify divergent actions with positive counterfactual reward and low divergent-unsafe rates, the paper can make a stronger claim about operational decision improvement.
+Several limitations remain. The results are single-seed (seed 42) with a second seed as a reproducibility check; full three-seed mean ± standard deviation is pending. Learned baselines (behavioural cloning, IQL) and two explanation layers (attention/saliency and rule-compliance) are not yet implemented. The off-policy and inverse-RL estimates rely on a fitted evaluator extrapolating to counterfactual actions — the standard offline-RL out-of-distribution caveat — and the recovered reward weights are reported qualitatively only. Platform-deviation detection is conservative because route-to-platform mapping is available for only a subset of routes. The dataset covers the Derby workstation, so transfer to other areas would require new local decoding and infrastructure mapping.
 
 ## 9. Conclusion
 
@@ -269,27 +301,57 @@ This draft was prepared with AI-assisted writing support under author direction.
 
 [12] Z. Hu et al., "Heterogeneous Graph Transformer," WWW, 2020.
 
-## Tables and figures to add before submission
+## Tables
 
-Table 1. Dataset construction and split statistics.
+**Table 1. Dataset construction and split (Derby workstation, 14 months).**
 
-Table 2. Baseline and model comparison over three seeds.
+| Item | Value |
+|---|---|
+| Usable decision snapshots | 1,996,572 |
+| Set / wait decisions | 546,418 / 1,453,205 |
+| Train / validation / test snapshots | 1,472,064 / 186,145 / 338,363 |
+| Split rule | time-based, episode-local (train < 2024-02-01; val < 2024-03-01; test ≥ 2024-03-01) |
+| Vocabulary (track / signal / route / train) | 268 / 123 / 278 / 2,184 |
+| Delay-change coverage (post-correction) | 685,715 decisions (≈34%) |
 
-Table 3. Stratified performance by operational case.
+**Table 2. Training gates (full-data Conservative Q-Learning; seed 42, with seed 43 as reproducibility check).** All §11 gates pass.
 
-Table 4. Replicate-and-Improve counterfactual decomposition.
+| Phase | Gate | Seed 42 | Seed 43 |
+|---|---|---|---|
+| A | route > 0.50 / time > 0.35 | 0.925 / 0.699 | 0.916 / 0.690 |
+| B | Q-top1 > 0.55 / \|Q\| < 100 | 0.963 / 57.8 | 0.964 / 62.1 |
+| C | Q-top1 > 0.65 | 0.981 | 0.983 |
+| — | best validation action top-1 | 0.982 | 0.983 |
 
-Figure 1. End-to-end RailRL pipeline.
+**Table 3. Stratified set-only top-1 agreement with the signaller, model vs non-learned baselines (test split, seed 42).** Set-only isolates the routing decision (the all-decisions figure is confounded by each method's wait/set propensity).
 
-Figure 2. Dynamic route-setting action formulation.
+| Stratum | n (set) | CQL model | Planned-platform | First-candidate | Random |
+|---|---|---|---|---|---|
+| Overall | 92,280 | **0.957** | 0.531 | 0.528 | 0.322 |
+| Late train | 24,964 | **0.970** | 0.616 | 0.612 | 0.353 |
+| Advance | 1,760 | **0.917** | 0.709 | 0.702 | 0.320 |
+| Call-on | 6,373 | **0.881** | 0.048 | 0.028 | 0.093 |
+| Platform deviation | 308 | **0.903** | 0.000 | 0.000 | 0.133 |
+| Priority competition | 16,066 | **0.925** | 0.511 | 0.511 | 0.314 |
+| Trivial | 42,807 | **0.975** | 0.557 | 0.557 | 0.344 |
 
-Figure 3. HGT + event-transformer + per-action Q-network architecture.
+**Table 4. Safety and off-policy value of the learned policy (seed 42).** Simulator validated on a held-out month (occupancy rank-corr 0.94; throughput rank-corr 0.86). ΔV = FQE discounted-return difference (model − signaller); 95% CI episode-clustered.
 
-Figure 4. Leakage audit and data repair summary.
+| Quantity | Value |
+|---|---|
+| Divergence rate (set decisions) | 4.3% |
+| Genuine-unsafe divergence rate | 0.0% |
+| Conflict-load Δ (headway-wait events, model − signaller) | ≈ +0.07 |
+| ΔV total | ≈ 0 (CI spans 0) |
+| ΔV delay | +0.020 [−0.040, +0.070] |
+| ΔV wait | **+0.035 [+0.027, +0.044]** |
+| ΔV throughput | −0.012 [−0.018, −0.007] |
+| ΔV headway | +0.005 (≈ 0) |
+| Signaller IRL routing weights (set-only, l1-norm) | delay 1.45 > throughput 0.91 > wait 0.61 (headway not interpreted) |
 
-Figure 5. Final training and baseline comparison.
+## Figures to add before submission
 
-Figure 6. Explainability case study.
+Figure 1. End-to-end RailRL pipeline. Figure 2. Dynamic route-setting action formulation. Figure 3. HGT + event-transformer + per-action Q-network architecture. Figure 4. Leakage audit and data-repair summary. Figure 5. Training curves and stratified baseline comparison (Table 3). Figure 6. Explainability case study (L2 Q-gap decomposition; L5 recovered weights).
 
 ## Internal quality note
 

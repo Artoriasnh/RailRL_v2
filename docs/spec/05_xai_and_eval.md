@@ -894,6 +894,31 @@ Before using L3 for Tier 3 decomposition:
 - Target: `Spearman(simulated, actual) > 0.6` on delay_change and throughput
 - If lower, recalibrate parameters or use wider CIs in L3
 
+#### 14.6.1 AMENDMENT v1.1 (2026-05-24, post feasibility-probe) — primary gate = throughput/occupancy
+
+The original "Spearman > 0.6 on delay_change AND throughput" is amended after the
+feasibility probe (`scripts/simulator/00_feasibility_probe.py`) + the delay-coverage
+bug investigation:
+
+- **Why**: recorded `delay_change` is sparse (was ~6%, now ~34% after the delay
+  bug fixes) and is only ~10% of `r_total` (r_throughput/r_wait/r_headway dominate).
+  The DENSE, validatable signal is **TC occupancy / throughput** (from the full TD
+  stream, ~1M events/month). Gating Tier 3 on a delay-Spearman we can't robustly
+  estimate would block a sound simulator.
+- **Amended gate (PRIMARY, must pass)**: on the held-out val month (2024-02, which
+  is in the clock-correct period — Movements +1h bug was Apr-Jul 2023 only):
+  - `Spearman(simulated, actual) > 0.6` on **throughput** (trains completing routes), AND
+  - **occupancy-trajectory agreement** (fraction of (TC, time) occupancy correctly
+    predicted over the 30-min rollout) above a calibration threshold.
+- **delay_change-Spearman = BEST-EFFORT** (report on the subset with TRUST timing
+  points; caveat the coverage in the paper — same family as the documented
+  approach_distance 48% / delay 34% limitations). NOT a hard gate.
+- **Rationale**: the Tier-3 reward-delta is dominated by throughput/wait/headway,
+  which the occupancy/throughput validation covers densely; delay is a minority
+  contributor. See IMPLEMENTATION_LOG 2026-05-24 "P2.6 仿真器可行性勘探" + "fix #1/#2".
+- If the PRIMARY gate fails → recalibrate parameters / widen CIs / narrow the Tier-3
+  claim; do NOT build Tier 3 on an unvalidated simulator.
+
 ---
 
 ## §15 Implementation modules

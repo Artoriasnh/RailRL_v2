@@ -21,8 +21,13 @@
 | Stage 4.7.2a-c | transitions + trainer（smoke 端到端过） | ✅ |
 | **Stage 4.7.2d** | episode 跨月修 + canonical 重排 + 流式 loader + 块级分层 + lateness 修 + platform_dev 修 | ✅ |
 | **Stage 5** | 50k sanity（全 §11 gate PASS）+ 泄露审计 06/07/21 全过 | ✅ |
-| **Stage 6** | 全量 3-seed CQL（seed 42 训练中 ~17h；trainer 接流式+分层+§11 gate+resume） | 🔨 |
-| Stage 7-12 | baselines → 评估(3-tier) → XAI(5 级) → 论文 | ⏳ |
+| Stage 4.6.5b | 🔴 delay reward 两 bug 修复（train_id 跨月 + Movements +1h）→ 全量重算 reward | ✅ |
+| **Stage 6** | 全量 3-seed CQL（修复数据上重训：seed 42 ✅ / 43 ✅ / 44 待；§11 gate 全过） | 🔨 |
+| **Stage 7** | 非学习 baseline Table I ✅(B0 随机/B0' 计划站台/B0'' 首候选;BC/IQL 待) | 🔨 |
+| **Stage 8** | 评估：Tier1/2 口径 ✅ · P2.6 模拟器 ✅验证 · Tier-3 安全优先 ✅ · OPE/FQE ✅ | ✅ |
+| **Stage 9-11** | XAI：L3✅(反事实) · L2✅(Q-gap Shapley) · L5✅(IRL 定性);L1(显著性)/L4(规则) 进行中 | 🔨 |
+| Stage 12 | 论文（不由 AI 代写,只记录结果;结果汇总 `RESULTS_SUMMARY.md`） | ⏳ |
+| — | **多 seed**：seed44 → 3-seed mean±std（发表硬要求） | ⏳ |
 
 ---
 
@@ -108,6 +113,17 @@
 - 新 `scripts/mdp/23_patch_movements_state.py`：仅对 Apr-Jul 行重算 5 个状态字段（planned_platform/scheduled_delta_s/schedule_outlook/f_late_train/f_platform_dev，复用真实函数）；f_trts_pressed 需 TD trts_state（未存）无法 patch、留微小残差记局限。
 - **完整跑序**：23 → reward 08→09→10 → 01 norm → 16 stratum → 重训 42/43/44 → 重评估。详见 IMPLEMENTATION_LOG。
 
+### ✅ 数据修复落地 + 重训前体检 + seed42/43 重训（2026-05-24/25）
+- 两 delay bug 修复后全量重算 reward(08→09→10)+重并+重派生 Apr-Jul 状态(`23_patch_movements_state.py`)；新增**重训前 5 段体检 gate `24_pre_retrain_audit.py`**（结构 / 奖励+label 独立一致 / 状态 / 非窗口行不变 / 跨月 MAD 异常扫描）。修 fix#2 reward 路径 dtype bug（TOOL_TRAPS §18）。
+- **seed42 在修正数据上重训 ✅ §11 gate 全过**（C Q-top1 .981 / best .9823@C8）；test set-only .957；r_delay 2.5%→9.6%。**seed43 ✅ 全过**（best .9832@C20，与 42 高度一致；|Q| C 末 105 有界、比 42 更受控）。seed44 待。
+
+### ✅ Stage 8 评估 — 模拟器 + Tier-3 + OPE/FQE（2026-05-25/26）
+- **P2.6 模拟器**（`xai/l3_system.py` + `simulator/01_estimate_parameters`,`02_validate_simulator`）：4 参数表 + 事件驱动 rollout（eval-only）；spec §14.6.1 PRIMARY 门 occupancy Spearman **.94** / throughput **.86**（headway 分位 p5→p1 校准后）→ PASS。
+- **Tier-3 安全优先 v1.2**（`eval/03_tier3_replicate_improve.py`）：先修共享可变状态 artifact（simulate 用 `replace` 副本）+ 反事实不对称诊断（被判 unsafe 的 100% 单独跑能跑完 → fixed-others 偏置）→ 改 genuine_unsafe 用**模拟器无关信号**（候选合法 + 单独可行）。结果 **genuine_unsafe 0% · 冲突负荷 headway-wait Δ≈+0.07(≈0) · 复制 95.7%**；delay 层模型偏离 intrinsic +14s 略慢。
+- **OPE/FQE**（`eval/04_ope_fqe.py` + `05_ope_fqe_decompose.py`）：真实 logged 轨迹估 V^π(FQE) vs V^β(真实 MC 折扣回报)。**total ΔV≈0（与人持平）；delay ΔV=−0.24 显著为负（模型 delay 更差）**，与模拟器 +14s 互证。根因诊断（**非架构**）：r_delay 稀疏 34% + 量级小 → 有效占比 ~10%，权重 1.0 最大却被 wait/throughput 淹没 → 模型拿 delay 换少等待/高吞吐（待 05 分解 + Σ-check 证实）。
+- **框架转向（与 Hao 商定）**：headline 从"超越人类"改为 **"高保真(95.7%)+ 安全(0 unsafe)复制 · 与人持平 · 胜过 FCFS 等 baseline"** —— baselines 成为关键对照（可用 FQE 换 π 直接评估）。
+- 详见 IMPLEMENTATION_LOG 对应日期条目。
+
 **本会话新增/改动文件清单（截至 Stage 6）**
 - 新脚本：`scripts/mdp/` 13(gap 分析) 14(重分段) 15(canonical 重排) 16(stratum 标签) 17(late 诊断) 18(late patch) 19(flag/platform 诊断) 20(platform_dev patch) 21(泄露基线)；`scripts/train/10_smoke_streaming.py`、`scripts/train/11_aggregate_results.py`(Stage 6 多 seed 聚合)
 - 改代码：`input_pipeline.py`(+`load_episode_split`)、`01_build_normalization_stats.py`(split 改 sidecar)、`transitions.py`(+`StreamingTransitionDataset`+stratified)、`state_history.py`(`current_lateness_s`)、`special_flags.py`(`f_late_train`/`f_platform_dev`)、`hgt.py`(pooling dim_size 修)、`09_train.py`(流式+分层+§11 gate+resume+fd fix)、`trainer.py`(time_acc/q_absmax+resume)、`06_run_leak_audit_full.py`(流式+center 别名)
@@ -121,3 +137,22 @@
 - **vocab**：track_id 268 / signal 123 / route 278 / train 2184（编码器据此，勿改）。
 - **时间划分**：train<2024-02-01 / val<2024-03-01 / test≥（按 episode 起始时间，episode 已时间局部，零泄露）。
 - **锁定超参**：CQL α=5、γ=0.95、3 阶段 5+15+20ep、batch 256、AdamW lr3e-4。
+
+## 2026-05-27 — L4 rule-compliance (P2.5 + spec §10) 建成
+- rule_base.py（19 条 Hao-approved 规则 + 路由目录 + matcher）、l4_rules.py（l4_check/summary，扩展 §10.2 含 platform_set/policy_fact/ambiguous）、03_finalize.py（→rules.parquet）、12_l4_compliance.py（模型&信号员合规 GPU 驱动）。
+- 方向锚点经 Hao 回填 + AI 核验（更正 TFPY→TFPV、弃用 0命中的 TDWV→改 TD5043）。
+- 纯逻辑沙盒全过；torch/pyarrow 实跑待 Hao。
+
+## 2026-05-27 — L4 全量结果 + focal_signal 格式修复
+- 修 focal_signal 裸数字格式 bug（rule_base.decision_signal 从候选 route_id 还原 prefixed 决策信号）→ L4 首跑 0 判定 → 修后正常。
+- L4 全量(seed42 test)：硬规则合规 模型 81.0% / 信号员 85.7%；rules.parquet(19 行)已生成。
+- 新坑记 TOOL_TRAPS §20（磁盘满→NUL 损坏+不可删 pyc，用 PYTHONPYCACHEPREFIX）、§21（virtiofs mount 冻结在截断版本）。
+
+## 2026-05-27 — §12 Selective Override 建成
+- deploy/selective_override.py(三闸规则+L2 faithfulness+评估器) + scripts/eval/13_selective_override.py(模型+L3 reward-unit delta+l4+gated L2 驱动)。纯逻辑沙盒全过;torch/sim 待 Hao。spec 最后一个未建模块完成。
+
+## 2026-05-27 — §12 gate_l4 改"非 non-compliant 即放行"(双口径)
+- selective_override 加 l4_mode(refined 默认/literal 对照)；evaluate 并列报两口径。修因:no-rule 占 ~99%,字面 compliant 闸使 override≈0。
+
+## 2026-05-27 — B2 BC-HG + B3 IQL 学习型 baseline 建成
+- trainer.compute_loss 加 alg(cql/bc/iql)+value_head；09_train.py 加 --algo bc/iql 分支(BC 20ep监督；IQL 3-phase+expectile-V/AWR+外置value_head)。复用 losses.py 现成 bc_q_loss/iql_total。CQL 路径不变。训练待 Hao GPU×3seed。
