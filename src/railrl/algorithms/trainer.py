@@ -94,12 +94,26 @@ def _batch_dict(batch_s, done, time_lut, device):
             "set_mask": a > 0, "time_bucket": tb}
 
 
-def compute_loss(model, target, batch_s, batch_sp, done, time_lut, phase, device):
-    """Loss for the given phase. Returns (loss, parts dict)."""
+def compute_loss(model, target, batch_s, batch_sp, done, time_lut, phase, device,
+                 alg="cql", value_head=None):
+    """Loss for the given phase + algorithm. Returns (loss, parts dict).
+    alg='cql' (main, 3-phase), 'bc' (B2 BC-HG baseline: supervised CE over the action set +
+    aux, phase-agnostic, no target), 'iql' (B3 alt: phase A aux; B/C expectile-V + Q-Bellman +
+    AWR via value_head on s_emb). value_head: nn.Module s_emb→scalar, required for alg='iql' B/C."""
     import torch
     bd = _batch_dict(batch_s, done, time_lut, device)
     out = model(batch_s)
-    if phase == "A":
+
+    # ---- BC baseline (B2 BC-HG): pure imitation, no Q-learning / target / phases ----
+    if alg == "bc":
+        l_route, l_time = L.aux_losses(out["route_scores"], out["time_logits"],
+                                       bd["chosen_action_idx"], bd["set_mask"], bd["time_bucket"])
+        l_bc = L.bc_q_loss(out["Q"], bd["chosen_action_idx"])      # CE over masked action set
+        loss = l_bc + L.W_ROUTE * l_route + L.W_TIME * l_time
+        return loss, {"L_bc": l_bc.detach(), "L_route": l_route.detach(),
+                      "L_time": l_time.detach(), "L_total": loss.detach()}
+
+    if phase == "A":                                                # aux warmup (cql & iql)
         l_route, l_time = L.aux_losses(out["route_scores"], out["time_logits"],
                                        bd["chosen_action_idx"], bd["set_mask"],
                                        bd["time_bucket"])
@@ -108,13 +122,27 @@ def compute_loss(model, target, batch_s, batch_sp, done, time_lut, phase, device
                       "L_total": loss.detach()}
     with torch.no_grad():
         out_next = target(batch_sp)
+
+    # ---- IQL (B3 alt): expectile V + Q Bellman + AWR (phase B/C) ----
+    if alg == "iql":
+        # L_V needs Q_target(s,a) on the CURRENT state — gather action a on the current-state
+        # target Q (valid, unmasked slot). (Using out_next["Q"] here is WRONG: a indexes the
+        # current action set, but s' has a different mask → a often hits a −1e9 masked slot →
+        # L_V≈1e18 → divergence. Bug fixed 2026-05-27.)
+        with torch.no_grad():
+            tgt_cur = target(batch_s)                 # Q_target(s,·) on CURRENT state
+        v = value_head(out["s_emb"]).view(-1)
+        with torch.no_grad():
+            v_next = value_head(out_next["s_emb"]).view(-1)
+        return L.iql_total(out, {"Q": tgt_cur["Q"]}, bd, v=v, v_next=v_next)
+
+    # ---- CQL (main) ----
     if phase == "B":
         loss, parts = L.cql_loss(out["Q"], bd["chosen_action_idx"], bd["r_total"],
                                  out_next["Q"], bd["done"])
         parts["L_total"] = loss.detach()
         return loss, parts
-    # phase C — joint CQL + aux
-    return L.cql_total(out, {"Q": out_next["Q"]}, bd)
+    return L.cql_total(out, {"Q": out_next["Q"]}, bd)               # phase C joint
 
 
 def evaluate(model, loader, time_lut, device, max_batches: int = None):

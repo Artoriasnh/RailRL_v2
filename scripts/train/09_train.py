@@ -83,9 +83,12 @@ def check_gates(phase, means, val):
 def run_phase(phase, model, target, ds_train, val_loader, time_lut, device, *,
               epochs, peak_lr, batch_size, num_workers, warmup, batches_per_epoch,
               ckpt_dir, log, streaming, epoch_base, track_best=False, best_state=None,
-              start_epoch=0, gstep0=0, resume_optim_sd=None, seed=42, gates_acc=None):
-    optim = torch.optim.AdamW(T.build_param_groups(model), lr=peak_lr,
-                              betas=(0.9, 0.999), eps=1e-8)
+              start_epoch=0, gstep0=0, resume_optim_sd=None, seed=42, gates_acc=None,
+              alg="cql", value_head=None):
+    pgroups = T.build_param_groups(model)
+    if value_head is not None:                       # IQL value head joins the optimizer
+        pgroups = pgroups + [{"params": list(value_head.parameters()), "weight_decay": 0.0}]
+    optim = torch.optim.AdamW(pgroups, lr=peak_lr, betas=(0.9, 0.999), eps=1e-8)
     if resume_optim_sd is not None:
         try:
             optim.load_state_dict(resume_optim_sd)
@@ -107,9 +110,12 @@ def run_phase(phase, model, target, ds_train, val_loader, time_lut, device, *,
             bs = bs.to(device); bsp = bsp.to(device)
             lr = T.phase_lr(gstep, total_steps, warmup, peak_lr); T.set_lr(optim, lr)
             optim.zero_grad()
-            loss, parts = T.compute_loss(model, target, bs, bsp, done, time_lut, phase, device)
+            loss, parts = T.compute_loss(model, target, bs, bsp, done, time_lut, phase, device,
+                                         alg=alg, value_head=value_head)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), C.GRAD_CLIP)
+            _clip = list(model.parameters()) + (list(value_head.parameters())
+                                                if value_head is not None else [])
+            torch.nn.utils.clip_grad_norm_(_clip, C.GRAD_CLIP)
             optim.step()
             if target is not None and phase in ("B", "C"):
                 L.soft_update(target, model)
@@ -132,12 +138,14 @@ def run_phase(phase, model, target, ds_train, val_loader, time_lut, device, *,
         if track_best and best_state is not None and val["action_acc"] > best_state["acc"]:
             best_state.update(acc=val["action_acc"], phase=phase, epoch=ep + 1)
             torch.save({"phase": phase, "epoch": ep + 1, "model": model.state_dict(),
+                        "value_head": value_head.state_dict() if value_head is not None else None,
                         "val_action_acc": val["action_acc"]}, ckpt_dir / "best.pt")
         # rolling resume checkpoint (overwrite, 1 file) — epoch-granularity resume for
         # 12h windows. `epoch`=completed epochs IN THIS PHASE; restart loses ≤1 epoch.
         torch.save({"seed": seed, "phase": phase, "epoch": ep + 1, "gstep": gstep,
                     "model": model.state_dict(),
                     "target": target.state_dict() if target is not None else None,
+                    "value_head": value_head.state_dict() if value_head is not None else None,
                     "optimizer": optim.state_dict(),
                     "best_state": best_state, "log": log, "gates": gates_acc},
                    ckpt_dir / f"resume_seed{seed}.pt")
@@ -151,7 +159,8 @@ def run_phase(phase, model, target, ds_train, val_loader, time_lut, device, *,
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--algo", choices=["cql"], default="cql")
+    ap.add_argument("--algo", choices=["cql", "bc", "iql"], default="cql",
+                    help="cql (main, 3-phase) | bc (B2 BC-HG, 20ep supervised) | iql (B3, 3-phase)")
     ap.add_argument("--smoke", action="store_true", help="tiny end-to-end loop check (old loader)")
     ap.add_argument("--smoke-n", type=int, default=64)
     ap.add_argument("--sanity", action="store_true",
@@ -210,10 +219,10 @@ def main():
         train_rows = count_split_rows("train")
         if args.sanity:
             bpe = args.sanity_batches or max(1, 50000 // batch_size)
-            out = Path(args.out or (C.TRAIN_DIR / f"sanity_seed{args.seed}"))
+            out = Path(args.out or (C.TRAIN_DIR / f"sanity_{args.algo}_seed{args.seed}"))
         else:
             bpe = args.max_batches or max(1, train_rows // batch_size)
-            out = Path(args.out or (C.TRAIN_DIR / f"cql_seed{args.seed}"))
+            out = Path(args.out or (C.TRAIN_DIR / f"{args.algo}_seed{args.seed}"))
         print(f"train_rows≈{train_rows:,} | batches/epoch={bpe} | batch={batch_size} "
               f"workers={num_workers}")
 
@@ -225,7 +234,7 @@ def main():
     log = []; gates = {}; best_state = {"acc": -1.0}
     # ---- resume (epoch-granularity, 12h-window-safe) ----
     resume_path = out / f"resume_seed{args.seed}.pt"
-    start_phase, start_ep, gstep0, optim_sd, target_sd = "A", 0, 0, None, None
+    start_phase, start_ep, gstep0, optim_sd, target_sd, vh_sd = "A", 0, 0, None, None, None
     if args.resume and resume_path.exists():
         # weights_only=False: our OWN checkpoint (trusted) holds non-tensor state
         # (best_state/log/gates incl. python+numpy scalars). PyTorch 2.6 defaults
@@ -236,7 +245,7 @@ def main():
         best_state = rk.get("best_state") or best_state
         log = rk.get("log") or []
         gates = rk.get("gates") or {}
-        optim_sd, target_sd = rk.get("optimizer"), rk.get("target")
+        optim_sd, target_sd, vh_sd = rk.get("optimizer"), rk.get("target"), rk.get("value_head")
         print(f"[resume] phase={start_phase} done_epochs_in_phase={start_ep} "
               f"gstep={gstep0} | restored best/log/gates")
     elif args.resume:
@@ -244,13 +253,45 @@ def main():
     common = dict(batch_size=batch_size, num_workers=num_workers, warmup=warmup,
                   batches_per_epoch=bpe, ckpt_dir=out, log=log, streaming=streaming,
                   seed=args.seed, best_state=best_state, gates_acc=gates)
+
+    # ================= B2 BC-HG (imitation) / B3 IQL (alt offline-RL) baselines =================
+    if args.algo == "bc":
+        # pure imitation: CE over the action set + aux, no target/phases (spec 04 §1.3/§2.5).
+        bc_epochs = 1 if args.smoke else (3 if args.sanity else 20)
+        T.set_encoder_requires_grad(model, True)
+        mBC, vBC = run_phase("A", model, None, ds_train, val_loader, time_lut, device,
+                             epochs=bc_epochs, peak_lr=C.LR, epoch_base=0, track_best=True, alg="bc",
+                             start_epoch=(start_ep if start_phase == "A" else 0),
+                             gstep0=(gstep0 if start_phase == "A" else 0),
+                             resume_optim_sd=(optim_sd if start_phase == "A" else None),
+                             **common)
+        torch.save({"model": model.state_dict(), "seed": args.seed}, out / f"final_seed{args.seed}.pt")
+        (out / f"train_log_seed{args.seed}.json").write_text(json.dumps(log, indent=2))
+        print(f"\nBC-HG done | best val_action_acc={best_state['acc']:.4f} @ ep"
+              f"{best_state.get('epoch','?')} → best.pt | final → final_seed{args.seed}.pt")
+        return
+
+    # IQL reuses the CQL 3-phase schedule + resume; only the loss & a value head differ.
+    alg = args.algo                                   # 'cql' or 'iql' (bc returned above)
+    value_head = None
+    if alg == "iql":
+        import torch.nn as nn
+        # V(s) head over s_emb. LazyLinear → materialize with one forward so its params exist
+        # before the optimizer is built. Kept OUTSIDE RailRLModel (CQL/eval untouched).
+        value_head = nn.Sequential(nn.LazyLinear(256), nn.ReLU(), nn.Linear(256, 1)).to(device)
+        with torch.no_grad():
+            _b = next(iter(val_loader)); value_head(model(_b[0].to(device))["s_emb"])
+        if vh_sd is not None:
+            value_head.load_state_dict(vh_sd)         # resume the value head
+
+    # ============ CQL (main) / IQL (alt) — shared 3-phase schedule + resume ============
     pidx = {"A": 0, "B": 1, "C": 2}; si = pidx[start_phase]
 
     # ---- Phase A: encoder + aux heads (no target net) ----
     if si <= 0:
         T.set_encoder_requires_grad(model, True)
         mA, vA = run_phase("A", model, None, ds_train, val_loader, time_lut, device,
-                           epochs=epochs[0], peak_lr=C.LR, epoch_base=0,
+                           epochs=epochs[0], peak_lr=C.LR, epoch_base=0, alg=alg,
                            start_epoch=(start_ep if start_phase == "A" else 0),
                            gstep0=(gstep0 if start_phase == "A" else 0),
                            resume_optim_sd=(optim_sd if start_phase == "A" else None),
@@ -267,6 +308,7 @@ def main():
     if si <= 1:
         mB, vB = run_phase("B", model, target, ds_train, val_loader, time_lut, device,
                            epochs=epochs[1], peak_lr=C.LR, epoch_base=epochs[0],
+                           alg=alg, value_head=value_head,
                            start_epoch=(start_ep if start_phase == "B" else 0),
                            gstep0=(gstep0 if start_phase == "B" else 0),
                            resume_optim_sd=(optim_sd if start_phase == "B" else None),
@@ -277,13 +319,16 @@ def main():
     T.set_encoder_requires_grad(model, True)
     mC, vC = run_phase("C", model, target, ds_train, val_loader, time_lut, device,
                        epochs=epochs[2], peak_lr=peak_c, epoch_base=epochs[0] + epochs[1],
+                       alg=alg, value_head=value_head,
                        start_epoch=(start_ep if start_phase == "C" else 0),
                        gstep0=(gstep0 if start_phase == "C" else 0),
                        resume_optim_sd=(optim_sd if start_phase == "C" else None),
                        track_best=True, **common)
     gates["C"] = check_gates("C", mC, vC)
 
-    torch.save({"model": model.state_dict(), "seed": args.seed}, out / f"final_seed{args.seed}.pt")
+    torch.save({"model": model.state_dict(), "seed": args.seed,
+                "value_head": value_head.state_dict() if value_head is not None else None},
+               out / f"final_seed{args.seed}.pt")
     (out / f"train_log_seed{args.seed}.json").write_text(json.dumps(log, indent=2))
     print("\n=== §11 gate summary ===")
     for ph in ("A", "B", "C"):
