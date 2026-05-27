@@ -1,0 +1,16 @@
+{
+  "reward_key": "total",
+  "gamma": 0.95,
+  "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed42\\best.pt",
+  "n_states": 338284,
+  "n_episodes": 13739,
+  "V_pi": -1.3886274038152773,
+  "V_beta": -1.3727826868153397,
+  "delta_V": -0.015844716999937773,
+  "ci95": [
+    -0.07829866571469947,
+    0.03371266236549224
+  ],
+  "epochs": 2,
+  "warm_start": true
+}

@@ -1,0 +1,31 @@
+{
+  "keys": [
+    "total",
+    "delay",
+    "throughput",
+    "headway",
+    "wait"
+  ],
+  "gamma": 0.95,
+  "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed42\\best.pt",
+  "warm_start": false,
+  "epochs": 1,
+  "n_states": 338284,
+  "n_episodes": 13739,
+  "delta_V": {
+    "total": 0.0408179953560401,
+    "delay": 0.020017458088413577,
+    "throughput": -0.012378006395140265,
+    "headway": 0.005188665379790577,
+    "wait": 0.035257998785300476
+  },
+  "V_pi": {
+    "total": -1.3319646914592995,
+    "delay": -0.08423332327432781,
+    "throughput": 1.026879732393297,
+    "headway": -0.11035289118173404,
+    "wait": -2.15699008889421
+  },
+  "sum_components_delta_V": 0.04808611585836435,
+  "fit_residual_abs_mean": 0.236485624482729
+}

@@ -1,0 +1,91 @@
+{
+  "tier1_overall": {
+    "n": 338284,
+    "n_set": 92280,
+    "n_wait": 246004,
+    "action_top1_all": 0.9859881046694493,
+    "action_top1_set": 0.9501408755960121,
+    "wait_rate_signaller": 0.7272114554634568,
+    "wait_rate_model": 0.7270133970273498,
+    "wait_rate_delta": -0.00019805843610698481,
+    "wait_recall": 0.999434968537097,
+    "wait_precision": 0.9997072420985862,
+    "route_head_top1": 0.9485153879497182,
+    "n_time_valid": 89616,
+    "time_head_top1": 0.6482324584895555
+  },
+  "tier2_stratified": {
+    "overall": {
+      "n": 338284,
+      "n_set": 92280,
+      "n_wait": 246004,
+      "acc_all": 0.9859881046694493,
+      "acc_set": 0.9501408755960121
+    },
+    "late_train": {
+      "n": 103118,
+      "n_set": 24959,
+      "n_wait": 78159,
+      "acc_all": 0.9926685932620881,
+      "acc_set": 0.9711126247045154
+    },
+    "advance": {
+      "n": 49226,
+      "n_set": 1760,
+      "n_wait": 47466,
+      "acc_all": 0.9968309429976029,
+      "acc_set": 0.9198863636363637
+    },
+    "call_on": {
+      "n": 11709,
+      "n_set": 6371,
+      "n_wait": 5338,
+      "acc_all": 0.9346656418139893,
+      "acc_set": 0.8807094647622037
+    },
+    "platform_dev": {
+      "n": 496,
+      "n_set": 308,
+      "n_wait": 188,
+      "acc_all": 0.9395161290322581,
+      "acc_set": 0.9025974025974026
+    },
+    "priority_compete": {
+      "n": 46328,
+      "n_set": 16059,
+      "n_wait": 30269,
+      "acc_all": 0.9712484890347091,
+      "acc_set": 0.9199825642941653
+    },
+    "unusual_id": {
+      "n": 278,
+      "n_set": 26,
+      "n_wait": 252,
+      "acc_all": 0.9820143884892086,
+      "acc_set": 0.8461538461538461
+    },
+    "trivial": {
+      "n": 127129,
+      "n_set": 42797,
+      "n_wait": 84332,
+      "acc_all": 0.9866592201621974,
+      "acc_set": 0.9612122345024184
+    }
+  },
+  "q_gap": {
+    "n": 296767,
+    "mean_gap": 11.511714063244902,
+    "p5_gap": 3.628374397754669,
+    "p95_gap": 23.356756108999257,
+    "frac_chosen_is_argmax": 0.9840278737191129
+  },
+  "meta": {
+    "seed": 42,
+    "ckpt": "outputs\\train\\bc_seed42\\best.pt",
+    "ckpt_name": "best.pt",
+    "split": "test",
+    "n": 338284,
+    "val_action_acc_ckpt": 0.9820719160639707,
+    "stratified_sampling": false
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "edges_seconds": [
+    98,
+    121,
+    153,
+    204
+  ],
+  "percentiles": [
+    20,
+    40,
+    60,
+    80
+  ],
+  "calibrated_on": "train split \u03c4 only",
+  "n_train_labelled": 460758,
+  "bucket_definition": "0: \u03c4\u226498s | 1: \u2264121s | 2: \u2264153s | 3: \u2264204s | 4: >204s",
+  "distribution_all": [
+    108157,
+    106899,
+    102984,
+    106079,
+    105902
+  ],
+  "distribution_by_split": {
+    "train": [
+      92964,
+      93894,
+      89818,
+      92027,
+      92055
+    ],
+    "val": [
+      6282,
+      5247,
+      5007,
+      5238,
+      5775
+    ],
+    "test": [
+      8911,
+      7758,
+      8159,
+      8814,
+      8072
+    ]
+  },
+  "note": "spec 03 \u00a77.2 fixed [5,15,30,60] left 94% in bucket 4; recalibrated to train-\u03c4 quintiles (user decision 2026-05-22)."
+}

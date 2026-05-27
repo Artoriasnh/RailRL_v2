@@ -1,0 +1,28 @@
+{
+  "n_total": 1999623,
+  "n_set": 546418,
+  "n_wait": 1453205,
+  "n_unique_trains": 2186,
+  "n_unique_signals": 114,
+  "neg_pos_ratio": 2.66,
+  "by_trigger": {
+    "approach": 1453205,
+    "panel_request": 546418
+  },
+  "time_range": [
+    "2023-02-28 15:49:09",
+    "2024-04-25 15:37:28"
+  ],
+  "per_train_decisions": {
+    "mean": 914.7406221408966,
+    "median": 87.0,
+    "p25": 30.0,
+    "p75": 452.0,
+    "max": 12727
+  },
+  "elapsed_seconds": 127.8,
+  "spec_constants": {
+    "K_APPROACH": 2,
+    "DELTA_WAIT": 30
+  }
+}

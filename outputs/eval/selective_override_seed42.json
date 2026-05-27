@@ -1,0 +1,437 @@
+{
+  "n": 1500,
+  "primary": {
+    "delta_l3": 0.5,
+    "l4_mode": "refined"
+  },
+  "thresholds": {
+    "delta_l3_default": 0.5,
+    "faithfulness": 0.7,
+    "delta_l3_grid": [
+      0.5,
+      0.25,
+      0.1
+    ]
+  },
+  "sweep": {
+    "0.5": {
+      "refined": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 3,
+          "silent": 1497
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.002,
+          "silent": 0.998
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.002,
+        "silent_gate_failures": {
+          "l3": 1468,
+          "l4": 93,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "refined",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.8391709065707496,
+            "l4_mode": "refined",
+            "sample_id": 1875320,
+            "focal_train": "6M72",
+            "focal_signal": "5486",
+            "signaller_route": "REC5486F(M)",
+            "model_route": "REC5486C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.7174056883958433,
+            "l4_mode": "refined",
+            "sample_id": 1266515,
+            "focal_train": "5F98",
+            "focal_signal": "5488",
+            "signaller_route": "REC5488D(M)",
+            "model_route": "REC5488A(M)",
+            "stratum": "trivial"
+          }
+        ]
+      },
+      "literal": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 1,
+          "silent": 1499
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.0006666666666666666,
+          "silent": 0.9993333333333333
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.0006666666666666666,
+        "silent_gate_failures": {
+          "l3": 1468,
+          "l4": 1440,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "literal",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          }
+        ]
+      }
+    },
+    "0.25": {
+      "refined": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 6,
+          "silent": 1494
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.004,
+          "silent": 0.996
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.004,
+        "silent_gate_failures": {
+          "l3": 1403,
+          "l4": 93,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.9657328831008235,
+            "l4_mode": "refined",
+            "sample_id": 1276923,
+            "focal_train": "5R57",
+            "focal_signal": "5306",
+            "signaller_route": "RDW5306A(M)",
+            "model_route": "RDW5306B(M)",
+            "stratum": "trivial"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "refined",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.8391709065707496,
+            "l4_mode": "refined",
+            "sample_id": 1875320,
+            "focal_train": "6M72",
+            "focal_signal": "5486",
+            "signaller_route": "REC5486F(M)",
+            "model_route": "REC5486C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.7174056883958433,
+            "l4_mode": "refined",
+            "sample_id": 1266515,
+            "focal_train": "5F98",
+            "focal_signal": "5488",
+            "signaller_route": "REC5488D(M)",
+            "model_route": "REC5488A(M)",
+            "stratum": "trivial"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.8216581001733445,
+            "l4_mode": "refined",
+            "sample_id": 883066,
+            "focal_train": "6Z38",
+            "focal_signal": "5486",
+            "signaller_route": "REC5486F(M)",
+            "model_route": "REC5486B(M)",
+            "stratum": "late_train"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.9611847233127492,
+            "l4_mode": "refined",
+            "sample_id": 881427,
+            "focal_train": "6J16",
+            "focal_signal": "5045",
+            "signaller_route": "RTD5045B-1(M)",
+            "model_route": "RTD5045A(M)",
+            "stratum": "priority_compete"
+          }
+        ]
+      },
+      "literal": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 1,
+          "silent": 1499
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.0006666666666666666,
+          "silent": 0.9993333333333333
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.0006666666666666666,
+        "silent_gate_failures": {
+          "l3": 1403,
+          "l4": 1440,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "literal",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          }
+        ]
+      }
+    },
+    "0.1": {
+      "refined": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 6,
+          "silent": 1494
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.004,
+          "silent": 0.996
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.004,
+        "silent_gate_failures": {
+          "l3": 1403,
+          "l4": 93,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.9657328831008235,
+            "l4_mode": "refined",
+            "sample_id": 1276923,
+            "focal_train": "5R57",
+            "focal_signal": "5306",
+            "signaller_route": "RDW5306A(M)",
+            "model_route": "RDW5306B(M)",
+            "stratum": "trivial"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "refined",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.8391709065707496,
+            "l4_mode": "refined",
+            "sample_id": 1875320,
+            "focal_train": "6M72",
+            "focal_signal": "5486",
+            "signaller_route": "REC5486F(M)",
+            "model_route": "REC5486C(M)",
+            "stratum": "call_on"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 1.0,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.7174056883958433,
+            "l4_mode": "refined",
+            "sample_id": 1266515,
+            "focal_train": "5F98",
+            "focal_signal": "5488",
+            "signaller_route": "REC5488D(M)",
+            "model_route": "REC5488A(M)",
+            "stratum": "trivial"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.8216581001733445,
+            "l4_mode": "refined",
+            "sample_id": 883066,
+            "focal_train": "6Z38",
+            "focal_signal": "5486",
+            "signaller_route": "REC5486F(M)",
+            "model_route": "REC5486B(M)",
+            "stratum": "late_train"
+          },
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 0.5,
+            "l4_status": "no-rule",
+            "l2_faithfulness": 0.9611847233127492,
+            "l4_mode": "refined",
+            "sample_id": 881427,
+            "focal_train": "6J16",
+            "focal_signal": "5045",
+            "signaller_route": "RTD5045B-1(M)",
+            "model_route": "RTD5045A(M)",
+            "stratum": "priority_compete"
+          }
+        ]
+      },
+      "literal": {
+        "counts": {
+          "agreement": 0,
+          "consider-override": 1,
+          "silent": 1499
+        },
+        "rates": {
+          "agreement": 0.0,
+          "consider-override": 0.0006666666666666666,
+          "silent": 0.9993333333333333
+        },
+        "disagreement_n": 1500,
+        "override_rate_of_disagreements": 0.0006666666666666666,
+        "silent_gate_failures": {
+          "l3": 1403,
+          "l4": 1440,
+          "l2": 1494
+        },
+        "override_examples": [
+          {
+            "gate_l3": true,
+            "gate_l4": true,
+            "gate_l2": true,
+            "l3_delta": 2.0,
+            "l4_status": "compliant",
+            "l2_faithfulness": 0.7538620475758268,
+            "l4_mode": "literal",
+            "sample_id": 405522,
+            "focal_train": "1C92",
+            "focal_signal": "5076",
+            "signaller_route": "RDC5076D(M)",
+            "model_route": "RDC5076C(M)",
+            "stratum": "call_on"
+          }
+        ]
+      }
+    }
+  },
+  "meta": {
+    "seed": 42,
+    "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed42\\best.pt",
+    "n_all_decisions": 338284,
+    "n_set_decisions": 92280,
+    "agreement_rate_all_incl_wait": 0.9882199571957291,
+    "agreement_rate_set_only": 0.9571521456436931,
+    "n_set_disagreements_total": 3954,
+    "n_disagreements_gated(sampled)": 1500,
+    "delta_l3_grid": [
+      0.5,
+      0.25,
+      0.1
+    ],
+    "faithfulness_threshold": 0.7,
+    "note": "agreement_rate is EXACT (all decisions); consider-override/silent are over the SAMPLED set-disagreements (L3 sim + L2 expensive). L2 faithfulness computed only for loosest-\u03b4 L3\u2227L4 survivors. l3_delta in reward units (delay w=1.0/throughput w=0.5). PRIMARY = \u03b4_L3=0.5 + refined gate_l4; lower \u03b4 rows = sensitivity appendix."
+  }
+}

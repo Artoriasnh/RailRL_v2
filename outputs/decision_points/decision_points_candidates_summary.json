@@ -1,0 +1,11 @@
+{
+  "n_decisions": 1999623,
+  "n_set": 546418,
+  "n_wait": 1453205,
+  "candidate_size_mean": 2.722,
+  "candidate_size_max": 13,
+  "wait_only_pct": 12.05,
+  "chosen_appended": 34,
+  "set_no_chosen_route": 0,
+  "elapsed_seconds": 3.8
+}

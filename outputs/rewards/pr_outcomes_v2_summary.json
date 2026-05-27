@@ -1,0 +1,62 @@
+{
+  "total_prs": 546418,
+  "outcome_counts": {
+    "used": 543859,
+    "unused_timeout": 1629,
+    "unused_cancelled": 921,
+    "unknown": 9
+  },
+  "outcome_percent": {
+    "used": 99.53,
+    "unused_timeout": 0.3,
+    "unused_cancelled": 0.17,
+    "unknown": 0.0
+  },
+  "duration_seconds_by_outcome": {
+    "unknown": {
+      "count": 0.0,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "25%": NaN,
+      "50%": NaN,
+      "75%": NaN,
+      "max": NaN
+    },
+    "unused_cancelled": {
+      "count": 921.0,
+      "mean": 14.932681867535289,
+      "std": 15.91812701579784,
+      "min": 0.0,
+      "25%": 2.0,
+      "50%": 9.0,
+      "75%": 24.0,
+      "max": 59.0
+    },
+    "unused_timeout": {
+      "count": 1629.0,
+      "mean": 573.3885819521179,
+      "std": 2510.774947304528,
+      "min": 60.0,
+      "25%": 183.0,
+      "50%": 283.0,
+      "75%": 441.0,
+      "max": 37207.0
+    },
+    "used": {
+      "count": 543859.0,
+      "mean": 412.5013468564463,
+      "std": 18546.864218234074,
+      "min": 4.0,
+      "25%": 128.0,
+      "50%": 159.0,
+      "75%": 203.0,
+      "max": 3786371.0
+    }
+  },
+  "r_thru_distribution": {
+    "mean": 0.9921406322632124,
+    "min": -1.0,
+    "max": 1.0
+  }
+}

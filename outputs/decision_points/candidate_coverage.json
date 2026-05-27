@@ -1,0 +1,629 @@
+{
+  "n_total": 546418,
+  "n_in_candidates": 544483,
+  "n_not_in_candidates": 1935,
+  "coverage_pct": 99.646,
+  "elapsed_seconds": 12.9,
+  "mismatch_sample": [
+    {
+      "i": 2815,
+      "t": "2023-03-11 22:40:46",
+      "focal_train": "5A83",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 2904,
+      "t": "2023-03-11 23:58:38",
+      "focal_train": "1F85",
+      "focal_signal": "5037",
+      "chosen": "RTD5037A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 3072,
+      "t": "2023-03-12 09:34:31",
+      "focal_train": "1S37",
+      "focal_signal": "5328",
+      "chosen": "RDW5328B(M)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "RDW5328A(M)"
+      ]
+    },
+    {
+      "i": 3156,
+      "t": "2023-03-12 10:46:29",
+      "focal_train": "6Y75",
+      "focal_signal": "5496",
+      "chosen": "REC5496A(S)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "REC5496B(S)"
+      ]
+    },
+    {
+      "i": 4079,
+      "t": "2023-03-12 22:31:19",
+      "focal_train": "5C05",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 4137,
+      "t": "2023-03-12 23:44:07",
+      "focal_train": "5C05",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 4191,
+      "t": "2023-03-13 03:09:39",
+      "focal_train": "462R",
+      "focal_signal": "5104",
+      "chosen": "RDC5104A(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDC5104B(M)",
+        "RDC5104C(M)"
+      ]
+    },
+    {
+      "i": 4226,
+      "t": "2023-03-13 04:21:46",
+      "focal_train": "640R",
+      "focal_signal": "5084",
+      "chosen": "RDC5084A(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDC5084B(M)",
+        "RDC5084C(M)"
+      ]
+    },
+    {
+      "i": 4344,
+      "t": "2023-03-13 06:18:41",
+      "focal_train": "5F02",
+      "focal_signal": "5481",
+      "chosen": "REC5481A(S)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "REC5481A(SP)"
+      ]
+    },
+    {
+      "i": 5950,
+      "t": "2023-03-13 19:49:49",
+      "focal_train": "5A39",
+      "focal_signal": "5066",
+      "chosen": "RDC5066C(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDC5066A(M)",
+        "RDC5066B(M)"
+      ]
+    },
+    {
+      "i": 6104,
+      "t": "2023-03-13 21:18:43",
+      "focal_train": "689Z",
+      "focal_signal": "5490",
+      "chosen": "REC5490A(S)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 6133,
+      "t": "2023-03-13 21:36:17",
+      "focal_train": "1F75",
+      "focal_signal": "5045",
+      "chosen": "RTD5045D(M)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)"
+      ]
+    },
+    {
+      "i": 6287,
+      "t": "2023-03-13 23:11:51",
+      "focal_train": "OSOO",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 6671,
+      "t": "2023-03-14 06:45:27",
+      "focal_train": "1V66",
+      "focal_signal": "5331",
+      "chosen": "RDW5331A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 6811,
+      "t": "2023-03-14 07:44:22",
+      "focal_train": "4Z44",
+      "focal_signal": "5496",
+      "chosen": "REC5496A(S)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "REC5496B(S)"
+      ]
+    },
+    {
+      "i": 7731,
+      "t": "2023-03-14 16:11:00",
+      "focal_train": "501O",
+      "focal_signal": "5045",
+      "chosen": "RTD5045B-2(M)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)"
+      ]
+    },
+    {
+      "i": 8294,
+      "t": "2023-03-14 21:15:25",
+      "focal_train": "689Z",
+      "focal_signal": "5490",
+      "chosen": "REC5490A(S)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 8425,
+      "t": "2023-03-14 22:31:05",
+      "focal_train": "5D76",
+      "focal_signal": "5066",
+      "chosen": "RDC5066B(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDC5066A(M)",
+        "RDC5066C(M)"
+      ]
+    },
+    {
+      "i": 8495,
+      "t": "2023-03-14 23:17:15",
+      "focal_train": "2A42",
+      "focal_signal": "5045",
+      "chosen": "RTD5045C(C)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)"
+      ]
+    },
+    {
+      "i": 8588,
+      "t": "2023-03-15 00:56:05",
+      "focal_train": "5L88",
+      "focal_signal": "5063",
+      "chosen": "RDC5063D(M)",
+      "n_candidates": 3,
+      "candidates_sample": [
+        "RDC5063A(M)",
+        "RDC5063B(M)",
+        "RDC5063C(M)"
+      ]
+    },
+    {
+      "i": 8665,
+      "t": "2023-03-15 03:52:21",
+      "focal_train": "5C00",
+      "focal_signal": "5475",
+      "chosen": "REC5475C(M)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 8799,
+      "t": "2023-03-15 06:09:23",
+      "focal_train": "5B13",
+      "focal_signal": "5056",
+      "chosen": "RTD5056B(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RTD5056A(S)",
+        "RTD5056C(M)"
+      ]
+    },
+    {
+      "i": 10089,
+      "t": "2023-03-15 17:09:58",
+      "focal_train": "1G52",
+      "focal_signal": "5045",
+      "chosen": "RTD5045B-1(M)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-2(C)",
+        "RTD5045B-2(M)"
+      ]
+    },
+    {
+      "i": 10807,
+      "t": "2023-03-15 23:18:47",
+      "focal_train": "2A42",
+      "focal_signal": "5037",
+      "chosen": "RTD5037A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 10952,
+      "t": "2023-03-16 02:04:06",
+      "focal_train": "5F85",
+      "focal_signal": "5484",
+      "chosen": "REC5484A(S)",
+      "n_candidates": 5,
+      "candidates_sample": [
+        "REC5484B(S)",
+        "REC5484C(S)",
+        "REC5484C(SP)",
+        "REC5484D(M)",
+        "REC5484E(M)"
+      ]
+    },
+    {
+      "i": 10996,
+      "t": "2023-03-16 03:52:06",
+      "focal_train": "480U",
+      "focal_signal": "5302",
+      "chosen": "RDW5302A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 11257,
+      "t": "2023-03-16 11:21:05",
+      "focal_train": "2N41",
+      "focal_signal": "5053",
+      "chosen": "RTD5053B(M)",
+      "n_candidates": 6,
+      "candidates_sample": [
+        "RTD5053A(S)",
+        "RTD5053C(M)",
+        "RTD5053D(S)",
+        "RTD5053E(S)",
+        "RTD5053F(M)"
+      ]
+    },
+    {
+      "i": 11344,
+      "t": "2023-03-16 12:37:36",
+      "focal_train": "0S00",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 11521,
+      "t": "2023-03-16 15:23:41",
+      "focal_train": "020X",
+      "focal_signal": "5045",
+      "chosen": "RTD5045B-1(C)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)",
+        "RTD5045B-2(M)"
+      ]
+    },
+    {
+      "i": 11846,
+      "t": "2023-04-04 15:21:10",
+      "focal_train": "1C65",
+      "focal_signal": "569",
+      "chosen": "RDY569A(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDY569B(C)",
+        "RDY569B(M)"
+      ]
+    },
+    {
+      "i": 12031,
+      "t": "2023-04-04 17:09:33",
+      "focal_train": "220C",
+      "focal_signal": "5045",
+      "chosen": "RTD5045A(M)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)",
+        "RTD5045B-2(M)"
+      ]
+    },
+    {
+      "i": 12084,
+      "t": "2023-04-04 17:50:18",
+      "focal_train": "2A35",
+      "focal_signal": "5040",
+      "chosen": "RTD5040A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 12533,
+      "t": "2023-04-04 22:38:10",
+      "focal_train": "1F80",
+      "focal_signal": "5045",
+      "chosen": "RTD5045C(M)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)"
+      ]
+    },
+    {
+      "i": 12600,
+      "t": "2023-04-04 23:30:57",
+      "focal_train": "5C01",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 12605,
+      "t": "2023-04-04 23:31:45",
+      "focal_train": "2A42",
+      "focal_signal": "5045",
+      "chosen": "RTD5045C(C)",
+      "n_candidates": 11,
+      "candidates_sample": [
+        "RTD5045A(C)",
+        "RTD5045A(M)",
+        "RTD5045B-1(C)",
+        "RTD5045B-1(M)",
+        "RTD5045B-2(C)"
+      ]
+    },
+    {
+      "i": 12848,
+      "t": "2023-04-05 05:02:17",
+      "focal_train": "656I",
+      "focal_signal": "5329",
+      "chosen": "RDW5329A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 12858,
+      "t": "2023-04-05 05:16:37",
+      "focal_train": "5C17",
+      "focal_signal": "5483",
+      "chosen": "REC5483A(S)",
+      "n_candidates": 3,
+      "candidates_sample": [
+        "REC5483A(SP)",
+        "REC5483B(S)",
+        "REC5483B(SP)"
+      ]
+    },
+    {
+      "i": 13650,
+      "t": "2023-04-05 13:11:58",
+      "focal_train": "5P60",
+      "focal_signal": "5475",
+      "chosen": "REC5475E(M)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 14497,
+      "t": "2023-04-05 20:53:24",
+      "focal_train": "4H86",
+      "focal_signal": "562",
+      "chosen": "RDY562B(M)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "RDY562A(M)"
+      ]
+    },
+    {
+      "i": 14611,
+      "t": "2023-04-05 22:16:18",
+      "focal_train": "0S00",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 14712,
+      "t": "2023-04-05 23:18:03",
+      "focal_train": "2A42",
+      "focal_signal": "5037",
+      "chosen": "RTD5037A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 15296,
+      "t": "2023-04-06 08:48:19",
+      "focal_train": "2A39",
+      "focal_signal": "5032",
+      "chosen": "RTD5032A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 15297,
+      "t": "2023-04-06 08:48:27",
+      "focal_train": "1V06",
+      "focal_signal": "5029",
+      "chosen": "RTD5029A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 15416,
+      "t": "2023-04-06 10:09:01",
+      "focal_train": "UNKNOWN_TRAIN",
+      "focal_signal": "5320",
+      "chosen": "RDW5320A(S)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 16007,
+      "t": "2023-04-06 15:29:41",
+      "focal_train": "0Z60",
+      "focal_signal": "5496",
+      "chosen": "REC5496A(S)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "REC5496B(S)"
+      ]
+    },
+    {
+      "i": 16043,
+      "t": "2023-04-06 15:45:29",
+      "focal_train": "0Z60",
+      "focal_signal": "5496",
+      "chosen": "REC5496A(S)",
+      "n_candidates": 1,
+      "candidates_sample": [
+        "REC5496B(S)"
+      ]
+    },
+    {
+      "i": 16625,
+      "t": "2023-04-06 21:40:57",
+      "focal_train": "2A38",
+      "focal_signal": "5101",
+      "chosen": "RDC5101A(M)",
+      "n_candidates": 0,
+      "candidates_sample": []
+    },
+    {
+      "i": 16665,
+      "t": "2023-04-06 21:57:34",
+      "focal_train": "5C02",
+      "focal_signal": "5088",
+      "chosen": "RDC5088A(M)",
+      "n_candidates": 2,
+      "candidates_sample": [
+        "RDC5088B(M)",
+        "RDC5088C(M)"
+      ]
+    },
+    {
+      "i": 16693,
+      "t": "2023-04-06 22:18:38",
+      "focal_train": "5C01",
+      "focal_signal": "5475",
+      "chosen": "REC5475D(S)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    },
+    {
+      "i": 16906,
+      "t": "2023-04-07 03:23:26",
+      "focal_train": "5C05",
+      "focal_signal": "5475",
+      "chosen": "REC5475E(M)",
+      "n_candidates": 7,
+      "candidates_sample": [
+        "REC5475A(C)",
+        "REC5475A(M)",
+        "REC5475B(C)",
+        "REC5475B(M)",
+        "REC5475C(C)"
+      ]
+    }
+  ],
+  "passes_99_5_threshold": true
+}

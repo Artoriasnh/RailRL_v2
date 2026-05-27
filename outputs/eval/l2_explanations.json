@@ -1,0 +1,458 @@
+[
+  {
+    "sample_id": 1875901,
+    "stratum": "call_on",
+    "decomp": {
+      "a_star": 5,
+      "a_runner": 3,
+      "q_gap": 0.3502083420753479,
+      "base_value": 0.0,
+      "shap": {
+        "train": -0.5390960584084192,
+        "route": 0.7552530596653619,
+        "state": 0.2836650485793749,
+        "sequence": 0.13825949430465698,
+        "schedule": -0.25039064288139345,
+        "flags": -0.03748255918423334
+      },
+      "shap_sum": 0.35020834207534784,
+      "completeness_resid": 5.551115123125783e-17,
+      "q_full": [
+        -34.401519775390625,
+        -2.9560906887054443,
+        -5.411013126373291,
+        -0.6703555583953857,
+        -3.4633688926696777,
+        -0.3201475143432617,
+        -10.451517105102539,
+        -5.919376373291016,
+        -7.067214488983154,
+        -5.474496364593506,
+        -5.209932327270508,
+        -5.897194862365723,
+        -4.642659664154053,
+        -5.378320693969727,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5488B(M)) at 2024-03-15 17:57:20:\n\nSpecial-case context: f_call_on, f_priority_compete, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5488B(M)      Q = -0.32  \u27f5 chosen\n  - route REC5488A(M)      Q = -0.67  (runner-up)\n  - route REC5486A(M)      Q = -2.96\n\nQ-gap decomposition (route REC5488B(M) vs route REC5488A(M)) = +0.35:\n  - base (no informative input): +0.00\n  - Route features     +0.76\n  - Train features     -0.54\n  - Subgraph state     +0.28\n  - Schedule outlook   -0.25\n  - Sequence summary   +0.14\n  - Special flags      -0.04\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1875902,
+    "stratum": "priority_compete",
+    "decomp": {
+      "a_star": 4,
+      "a_runner": 1,
+      "q_gap": 0.611557126045227,
+      "base_value": 0.0,
+      "shap": {
+        "train": 0.7726749698321025,
+        "route": -0.3183256169160207,
+        "state": -0.1962692121664683,
+        "sequence": 0.2774099012215932,
+        "schedule": 0.0594067871570587,
+        "flags": 0.01666029691696167
+      },
+      "shap_sum": 0.6115571260452272,
+      "completeness_resid": -1.1102230246251565e-16,
+      "q_full": [
+        -24.902496337890625,
+        -0.7815089225769043,
+        -1.2350467443466187,
+        -1.0849742889404297,
+        -0.1699516773223877,
+        -1.1471880674362183,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5487C(C)) at 2024-03-15 18:02:43:\n\nSpecial-case context: f_priority_compete, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5487C(C)      Q = -0.17  \u27f5 chosen\n  - route REC5487A(M)      Q = -0.78  (runner-up)\n  - route REC5487B(M)      Q = -1.08\n\nQ-gap decomposition (route REC5487C(C) vs route REC5487A(M)) = +0.61:\n  - base (no informative input): +0.00\n  - Train features     +0.77\n  - Route features     -0.32\n  - Sequence summary   +0.28\n  - Subgraph state     -0.20\n  - Schedule outlook   +0.06\n  - Special flags      +0.02\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1875903,
+    "stratum": "advance",
+    "decomp": {
+      "a_star": 1,
+      "a_runner": 3,
+      "q_gap": 1.454819917678833,
+      "base_value": 0.0,
+      "shap": {
+        "train": 0.9259988675514856,
+        "route": 1.5104789415995281,
+        "state": 0.7363393346468607,
+        "sequence": -1.6453932762145995,
+        "schedule": -0.07569565872351328,
+        "flags": 0.003091708819071448
+      },
+      "shap_sum": 1.4548199176788328,
+      "completeness_resid": 2.220446049250313e-16,
+      "q_full": [
+        -25.540550231933594,
+        0.1948157250881195,
+        -2.3584768772125244,
+        -1.2600045204162598,
+        -7.837273597717285,
+        -6.3597540855407715,
+        -5.884481430053711,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5484A(S)) at 2024-03-18 17:39:37:\n\nSpecial-case context: f_advance, f_priority_compete, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5484A(S)      Q = +0.19  \u27f5 chosen\n  - route REC5484C(S)      Q = -1.26  (runner-up)\n  - route REC5484B(S)      Q = -2.36\n\nQ-gap decomposition (route REC5484A(S) vs route REC5484C(S)) = +1.45:\n  - base (no informative input): +0.00\n  - Sequence summary   -1.65\n  - Route features     +1.51\n  - Train features     +0.93\n  - Subgraph state     +0.74\n  - Schedule outlook   -0.08\n  - Special flags      +0.00\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1875904,
+    "stratum": "advance",
+    "decomp": {
+      "a_star": 1,
+      "a_runner": 3,
+      "q_gap": 3.226078510284424,
+      "base_value": 0.0,
+      "shap": {
+        "train": 0.9857697136700152,
+        "route": 1.9569922812283036,
+        "state": 1.2468723739186922,
+        "sequence": -1.0911234649519124,
+        "schedule": -0.10268028527498244,
+        "flags": 0.23024789169430737
+      },
+      "shap_sum": 3.226078510284423,
+      "completeness_resid": 8.881784197001252e-16,
+      "q_full": [
+        -27.937313079833984,
+        0.10903036594390869,
+        -3.61881685256958,
+        -3.1170473098754883,
+        -7.868176460266113,
+        -6.230924129486084,
+        -6.23933219909668,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5484A(S)) at 2024-03-23 23:17:56:\n\nSpecial-case context: f_advance, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5484A(S)      Q = +0.11  \u27f5 chosen\n  - route REC5484C(S)      Q = -3.12  (runner-up)\n  - route REC5484B(S)      Q = -3.62\n\nQ-gap decomposition (route REC5484A(S) vs route REC5484C(S)) = +3.23:\n  - base (no informative input): +0.00\n  - Route features     +1.96\n  - Subgraph state     +1.25\n  - Sequence summary   -1.09\n  - Train features     +0.99\n  - Special flags      +0.23\n  - Schedule outlook   -0.10\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1875910,
+    "stratum": "call_on",
+    "decomp": {
+      "a_star": 5,
+      "a_runner": 3,
+      "q_gap": 0.20119960606098175,
+      "base_value": 0.0,
+      "shap": {
+        "train": -0.43785278449455894,
+        "route": 0.7985258991519608,
+        "state": -0.2681091591715813,
+        "sequence": 0.4228358502189318,
+        "schedule": -0.19732590566078823,
+        "flags": -0.11687429398298263
+      },
+      "shap_sum": 0.20119960606098156,
+      "completeness_resid": 1.942890293094024e-16,
+      "q_full": [
+        -36.13451385498047,
+        -8.208475112915039,
+        -9.011543273925781,
+        -0.43247994780540466,
+        -7.09956693649292,
+        -0.23127958178520203,
+        -13.39289665222168,
+        -8.068342208862305,
+        -9.34232234954834,
+        -7.399962902069092,
+        -7.651928901672363,
+        -7.844078063964844,
+        -7.441892623901367,
+        -7.9313507080078125,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5488B(M)) at 2024-04-11 17:58:34:\n\nSpecial-case context: f_call_on, f_priority_compete, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5488B(M)      Q = -0.23  \u27f5 chosen\n  - route REC5488A(M)      Q = -0.43  (runner-up)\n  - route REC5488B(C)      Q = -7.10\n\nQ-gap decomposition (route REC5488B(M) vs route REC5488A(M)) = +0.20:\n  - base (no informative input): +0.00\n  - Route features     +0.80\n  - Train features     -0.44\n  - Sequence summary   +0.42\n  - Subgraph state     -0.27\n  - Schedule outlook   -0.20\n  - Special flags      -0.12\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1875911,
+    "stratum": "priority_compete",
+    "decomp": {
+      "a_star": 1,
+      "a_runner": 3,
+      "q_gap": 0.5924282073974609,
+      "base_value": 0.0,
+      "shap": {
+        "train": -0.2578631987174351,
+        "route": -0.06700367232163744,
+        "state": 0.34159076462189353,
+        "sequence": 0.5623900324106217,
+        "schedule": -0.018087025980154665,
+        "flags": 0.03140130738417308
+      },
+      "shap_sum": 0.592428207397461,
+      "completeness_resid": -1.1102230246251565e-16,
+      "q_full": [
+        -27.904836654663086,
+        0.2655855417251587,
+        -1.4248565435409546,
+        -0.32684195041656494,
+        -0.699420690536499,
+        -0.6320382356643677,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (****, route REC5487C(C)) at 2024-04-11 18:05:21:\n\nSpecial-case context: f_priority_compete, f_unusual_id\n\nModel deliberation (top-3 Q):\n  - route REC5487A(M)      Q = +0.27  \u27f5 chosen\n  - route REC5487B(M)      Q = -0.33  (runner-up)\n  - route REC5487C(M)      Q = -0.63\n\nQ-gap decomposition (route REC5487A(M) vs route REC5487B(M)) = +0.59:\n  - base (no informative input): +0.00\n  - Sequence summary   +0.56\n  - Subgraph state     +0.34\n  - Train features     -0.26\n  - Route features     -0.07\n  - Special flags      +0.03\n  - Schedule outlook   -0.02\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 469372,
+    "stratum": "trivial",
+    "decomp": {
+      "a_star": 2,
+      "a_runner": 1,
+      "q_gap": 2.9385178089141846,
+      "base_value": 0.0,
+      "shap": {
+        "train": 0.3736978491147359,
+        "route": 4.1780098875363665,
+        "state": -0.2930526971817017,
+        "sequence": -1.2421781023343406,
+        "schedule": -0.07795916795730592,
+        "flags": 3.9736429850260414e-08
+      },
+      "shap_sum": 2.9385178089141837,
+      "completeness_resid": 8.881784197001252e-16,
+      "q_full": [
+        -20.42119598388672,
+        -2.9770803451538086,
+        -0.03856249153614044,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0D01, route RDW5328B(M)) at 2024-03-29 10:31:25:\n\nSpecial-case context: none (trivial)\n\nModel deliberation (top-3 Q):\n  - route RDW5328B(M)      Q = -0.04  \u27f5 chosen\n  - route RDW5328A(M)      Q = -2.98  (runner-up)\n  - wait                   Q = -20.42\n\nQ-gap decomposition (route RDW5328B(M) vs route RDW5328A(M)) = +2.94:\n  - base (no informative input): +0.00\n  - Route features     +4.18\n  - Sequence summary   -1.24\n  - Train features     +0.37\n  - Subgraph state     -0.29\n  - Schedule outlook   -0.08\n  - Special flags      +0.00\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 469373,
+    "stratum": "trivial",
+    "decomp": {
+      "a_star": 1,
+      "a_runner": 0,
+      "q_gap": 29.16889762878418,
+      "base_value": -11.24929141998291,
+      "shap": {
+        "train": 1.3977975924809773,
+        "route": 9.446420013904572,
+        "state": 17.504733860492706,
+        "sequence": 12.509880173206328,
+        "schedule": -0.44064272443453467,
+        "flags": 1.3311703999837235e-07
+      },
+      "shap_sum": 40.41818904876709,
+      "completeness_resid": 0.0,
+      "q_full": [
+        -29.94101333618164,
+        -0.7721177339553833,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0D01, route RDW5324A(M)) at 2024-03-29 10:32:44:\n\nSpecial-case context: none (trivial)\n\nModel deliberation (top-3 Q):\n  - route RDW5324A(M)      Q = -0.77  \u27f5 chosen\n  - wait                   Q = -29.94  (runner-up)\n  - action#2               Q = -1000000000.00\n\nQ-gap decomposition (route RDW5324A(M) vs wait) = +29.17:\n  - base (no informative input): -11.25\n  - Subgraph state     +17.50\n  - Sequence summary   +12.51\n  - Route features     +9.45\n  - Train features     +1.40\n  - Schedule outlook   -0.44\n  - Special flags      +0.00\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 883215,
+    "stratum": "late_train",
+    "decomp": {
+      "a_star": 1,
+      "a_runner": 0,
+      "q_gap": 18.472789764404297,
+      "base_value": -10.607373237609863,
+      "shap": {
+        "train": 6.251222892602282,
+        "route": 2.978700451056162,
+        "state": -0.11533775726954162,
+        "sequence": 24.7959468682607,
+        "schedule": -0.6955320159594217,
+        "flags": -4.134837436676025
+      },
+      "shap_sum": 29.080163002014157,
+      "completeness_resid": 3.552713678800501e-15,
+      "q_full": [
+        -19.381916046142578,
+        -0.9091259241104126,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0D10, route RTD5043A(S)) at 2024-04-15 06:39:08:\n\nSpecial-case context: f_advance, f_priority_compete, f_late_train\n\nModel deliberation (top-3 Q):\n  - route RTD5043A(S)      Q = -0.91  \u27f5 chosen\n  - wait                   Q = -19.38  (runner-up)\n  - action#2               Q = -1000000000.00\n\nQ-gap decomposition (route RTD5043A(S) vs wait) = +18.47:\n  - base (no informative input): -10.61\n  - Sequence summary   +24.80\n  - Train features     +6.25\n  - Special flags      -4.13\n  - Route features     +2.98\n  - Schedule outlook   -0.70\n  - Subgraph state     -0.12\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 883220,
+    "stratum": "late_train",
+    "decomp": {
+      "a_star": 2,
+      "a_runner": 8,
+      "q_gap": 0.6175755262374878,
+      "base_value": 0.0,
+      "shap": {
+        "train": -1.6423508405685423,
+        "route": 0.016504037380218703,
+        "state": 0.4989067316055298,
+        "sequence": 1.6643813729286197,
+        "schedule": -0.16764447887738546,
+        "flags": 0.247778703769048
+      },
+      "shap_sum": 0.6175755262374885,
+      "completeness_resid": -6.661338147750939e-16,
+      "q_full": [
+        -24.77486228942871,
+        -9.496768951416016,
+        -1.574928879737854,
+        -6.199558258056641,
+        -2.6958765983581543,
+        -10.880666732788086,
+        -4.651859760284424,
+        -7.758511543273926,
+        -2.1925048828125,
+        -10.160487174987793,
+        -6.597755432128906,
+        -11.25483512878418,
+        -2.240273952484131,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0D10, route RTD5045E(M)) at 2024-04-15 06:41:07:\n\nSpecial-case context: f_call_on, f_priority_compete, f_late_train\n\nModel deliberation (top-3 Q):\n  - route RTD5045A(M)      Q = -1.57  \u27f5 chosen\n  - route RTD5045C(M)      Q = -2.19  (runner-up)\n  - route RTD5045E(M)      Q = -2.24\n\nQ-gap decomposition (route RTD5045A(M) vs route RTD5045C(M)) = +0.62:\n  - base (no informative input): +0.00\n  - Sequence summary   +1.66\n  - Train features     -1.64\n  - Subgraph state     +0.50\n  - Special flags      +0.25\n  - Schedule outlook   -0.17\n  - Route features     +0.02\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 1883047,
+    "stratum": "platform_dev",
+    "decomp": {
+      "a_star": 5,
+      "a_runner": 13,
+      "q_gap": 0.6275954246520996,
+      "base_value": 0.0,
+      "shap": {
+        "train": -0.12406918207804361,
+        "route": 2.223657695452372,
+        "state": -0.1336432814598084,
+        "sequence": -1.4260460058848063,
+        "schedule": -0.12176545063654581,
+        "flags": 0.20946164925893146
+      },
+      "shap_sum": 0.6275954246520992,
+      "completeness_resid": 4.440892098500626e-16,
+      "q_full": [
+        -34.642940521240234,
+        -13.492427825927734,
+        -13.967819213867188,
+        -5.095889568328857,
+        -14.314680099487305,
+        -3.6538352966308594,
+        -16.381433486938477,
+        -4.772700786590576,
+        -11.498054504394531,
+        -5.860188961029053,
+        -11.547273635864258,
+        -6.1368303298950195,
+        -9.6893310546875,
+        -4.281430244445801,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0R57, route REC5488A(M)) at 2024-03-18 05:41:29:\n\nSpecial-case context: f_platform_dev, f_priority_compete\n\nModel deliberation (top-3 Q):\n  - route REC5488B(M)      Q = -3.65  \u27f5 chosen\n  - route REC5488F(M)      Q = -4.28  (runner-up)\n  - route REC5488C(M)      Q = -4.77\n\nQ-gap decomposition (route REC5488B(M) vs route REC5488F(M)) = +0.63:\n  - base (no informative input): +0.00\n  - Route features     +2.22\n  - Sequence summary   -1.43\n  - Special flags      +0.21\n  - Subgraph state     -0.13\n  - Train features     -0.12\n  - Schedule outlook   -0.12\n\nManual compliance (L4): N/A (rule base pending)"
+  },
+  {
+    "sample_id": 608284,
+    "stratum": "platform_dev",
+    "decomp": {
+      "a_star": 12,
+      "a_runner": 8,
+      "q_gap": 4.011512279510498,
+      "base_value": 0.0,
+      "shap": {
+        "train": 0.8697895308335624,
+        "route": 0.41741806864738495,
+        "state": 0.028092449903488304,
+        "sequence": 1.6069837431112926,
+        "schedule": 0.45817114313443497,
+        "flags": 0.6310573438803355
+      },
+      "shap_sum": 4.011512279510498,
+      "completeness_resid": 0.0,
+      "q_full": [
+        -47.22602844238281,
+        -15.337270736694336,
+        -7.0621795654296875,
+        -15.044763565063477,
+        -7.159876346588135,
+        -17.51119041442871,
+        -7.54962158203125,
+        -12.240339279174805,
+        -7.047165393829346,
+        -15.97860050201416,
+        -10.827218055725098,
+        -18.491304397583008,
+        -3.0356531143188477,
+        -1000000000.0,
+        -1000000000.0
+      ]
+    },
+    "nl": "Decision (0Z11, route RTD5045E(M)) at 2024-04-01 16:43:05:\n\nSpecial-case context: f_platform_dev\n\nModel deliberation (top-3 Q):\n  - route RTD5045E(M)      Q = -3.04  \u27f5 chosen\n  - route RTD5045C(M)      Q = -7.05  (runner-up)\n  - route RTD5045A(M)      Q = -7.06\n\nQ-gap decomposition (route RTD5045E(M) vs route RTD5045C(M)) = +4.01:\n  - base (no informative input): +0.00\n  - Sequence summary   +1.61\n  - Train features     +0.87\n  - Special flags      +0.63\n  - Schedule outlook   +0.46\n  - Route features     +0.42\n  - Subgraph state     +0.03\n\nManual compliance (L4): N/A (rule base pending)"
+  }
+]

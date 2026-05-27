@@ -1,0 +1,14 @@
+{
+  "n_passes": 25447,
+  "n_unique_headcodes": 1884,
+  "n_unique_pass_ids": 25447,
+  "pass_source_counts": {
+    "trust_match": 25447
+  },
+  "passes_per_headcode": {
+    "mean": 13.51,
+    "max": 115,
+    "min": 1
+  },
+  "time_span": "2023-02-28 11:46:00 \u2192 2024-04-25 16:07:00"
+}

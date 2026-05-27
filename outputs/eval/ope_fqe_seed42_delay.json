@@ -1,0 +1,16 @@
+{
+  "reward_key": "delay",
+  "gamma": 0.95,
+  "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed42\\best.pt",
+  "n_states": 338284,
+  "n_episodes": 13739,
+  "V_pi": -0.34182646897308056,
+  "V_beta": -0.10425078136274141,
+  "delta_V": -0.23757568761033912,
+  "ci95": [
+    -0.2989057429755106,
+    -0.18838799379682541
+  ],
+  "epochs": 1,
+  "warm_start": true
+}

@@ -1,0 +1,973 @@
+{
+  "seed": 42,
+  "faithfulness": {
+    "distinct_top_nodes": 448,
+    "threshold": 50,
+    "faithful": true,
+    "note": "attention varies across decisions (not degenerate)"
+  },
+  "attention_rollout": "not extracted (PyG HGTConv); IG-only saliency (spec \u00a77.2)",
+  "panel_heatmap": "deferred (data/reference/panel_layout.json missing)",
+  "examples": [
+    {
+      "sample_id": 1875901,
+      "stratum": "call_on",
+      "focal_train": "****",
+      "t": "2024-03-15 17:57:20",
+      "target_action": 5,
+      "q_target": -0.32014763355255127,
+      "top_nodes": [
+        {
+          "type": "route",
+          "local_idx": 2,
+          "ident_vocab_idx": 197,
+          "is_focal": null,
+          "saliency": 0.9199696183204651
+        },
+        {
+          "type": "track",
+          "local_idx": 7,
+          "ident_vocab_idx": 195,
+          "is_focal": null,
+          "saliency": 0.39702528715133667
+        },
+        {
+          "type": "track",
+          "local_idx": 23,
+          "ident_vocab_idx": 27,
+          "is_focal": null,
+          "saliency": 0.39243578910827637
+        },
+        {
+          "type": "track",
+          "local_idx": 19,
+          "ident_vocab_idx": 182,
+          "is_focal": null,
+          "saliency": 0.369238018989563
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.32570111751556396
+        },
+        {
+          "type": "signal",
+          "local_idx": 4,
+          "ident_vocab_idx": 109,
+          "is_focal": null,
+          "saliency": 0.30899515748023987
+        },
+        {
+          "type": "track",
+          "local_idx": 35,
+          "ident_vocab_idx": 23,
+          "is_focal": null,
+          "saliency": 0.19874709844589233
+        },
+        {
+          "type": "signal",
+          "local_idx": 11,
+          "ident_vocab_idx": 21,
+          "is_focal": null,
+          "saliency": 0.19448712468147278
+        },
+        {
+          "type": "route",
+          "local_idx": 10,
+          "ident_vocab_idx": 194,
+          "is_focal": null,
+          "saliency": 0.1435421109199524
+        },
+        {
+          "type": "trn",
+          "local_idx": 1,
+          "ident_vocab_idx": 422,
+          "is_focal": false,
+          "saliency": 0.1389220654964447
+        }
+      ]
+    },
+    {
+      "sample_id": 1875902,
+      "stratum": "priority_compete",
+      "focal_train": "****",
+      "t": "2024-03-15 18:02:43",
+      "target_action": 4,
+      "q_target": -0.16995175182819366,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 17,
+          "ident_vocab_idx": 181,
+          "is_focal": null,
+          "saliency": 1.573964238166809
+        },
+        {
+          "type": "signal",
+          "local_idx": 12,
+          "ident_vocab_idx": 25,
+          "is_focal": null,
+          "saliency": 1.0678391456604004
+        },
+        {
+          "type": "track",
+          "local_idx": 25,
+          "ident_vocab_idx": 112,
+          "is_focal": null,
+          "saliency": 0.9572134613990784
+        },
+        {
+          "type": "signal",
+          "local_idx": 1,
+          "ident_vocab_idx": 11,
+          "is_focal": null,
+          "saliency": 0.8015308976173401
+        },
+        {
+          "type": "route",
+          "local_idx": 9,
+          "ident_vocab_idx": 192,
+          "is_focal": null,
+          "saliency": 0.5733001232147217
+        },
+        {
+          "type": "track",
+          "local_idx": 8,
+          "ident_vocab_idx": 110,
+          "is_focal": null,
+          "saliency": 0.5523223876953125
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.5028696656227112
+        },
+        {
+          "type": "track",
+          "local_idx": 44,
+          "ident_vocab_idx": 152,
+          "is_focal": null,
+          "saliency": 0.27687305212020874
+        },
+        {
+          "type": "track",
+          "local_idx": 18,
+          "ident_vocab_idx": 113,
+          "is_focal": null,
+          "saliency": 0.2538920044898987
+        },
+        {
+          "type": "track",
+          "local_idx": 32,
+          "ident_vocab_idx": 182,
+          "is_focal": null,
+          "saliency": 0.24977436661720276
+        }
+      ]
+    },
+    {
+      "sample_id": 1875903,
+      "stratum": "advance",
+      "focal_train": "****",
+      "t": "2024-03-18 17:39:37",
+      "target_action": 1,
+      "q_target": 0.19481563568115234,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 47,
+          "ident_vocab_idx": 109,
+          "is_focal": null,
+          "saliency": 0.6893486976623535
+        },
+        {
+          "type": "route",
+          "local_idx": 11,
+          "ident_vocab_idx": 171,
+          "is_focal": null,
+          "saliency": 0.23103907704353333
+        },
+        {
+          "type": "track",
+          "local_idx": 40,
+          "ident_vocab_idx": 183,
+          "is_focal": null,
+          "saliency": 0.20369568467140198
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.14093074202537537
+        },
+        {
+          "type": "track",
+          "local_idx": 50,
+          "ident_vocab_idx": 108,
+          "is_focal": null,
+          "saliency": 0.11302060633897781
+        },
+        {
+          "type": "track",
+          "local_idx": 48,
+          "ident_vocab_idx": 182,
+          "is_focal": null,
+          "saliency": 0.11227791011333466
+        },
+        {
+          "type": "trn",
+          "local_idx": 1,
+          "ident_vocab_idx": 944,
+          "is_focal": false,
+          "saliency": 0.09266388416290283
+        },
+        {
+          "type": "route",
+          "local_idx": 2,
+          "ident_vocab_idx": 176,
+          "is_focal": null,
+          "saliency": 0.07111798971891403
+        },
+        {
+          "type": "track",
+          "local_idx": 32,
+          "ident_vocab_idx": 114,
+          "is_focal": null,
+          "saliency": 0.06945712864398956
+        },
+        {
+          "type": "signal",
+          "local_idx": 7,
+          "ident_vocab_idx": 10,
+          "is_focal": null,
+          "saliency": 0.06853409111499786
+        }
+      ]
+    },
+    {
+      "sample_id": 1875904,
+      "stratum": "advance",
+      "focal_train": "****",
+      "t": "2024-03-23 23:17:56",
+      "target_action": 1,
+      "q_target": 0.10903036594390869,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 12,
+          "ident_vocab_idx": 109,
+          "is_focal": null,
+          "saliency": 0.40507858991622925
+        },
+        {
+          "type": "route",
+          "local_idx": 11,
+          "ident_vocab_idx": 171,
+          "is_focal": null,
+          "saliency": 0.15157945454120636
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.0867939442396164
+        },
+        {
+          "type": "signal",
+          "local_idx": 8,
+          "ident_vocab_idx": 11,
+          "is_focal": null,
+          "saliency": 0.07475965470075607
+        },
+        {
+          "type": "track",
+          "local_idx": 4,
+          "ident_vocab_idx": 108,
+          "is_focal": null,
+          "saliency": 0.07244360446929932
+        },
+        {
+          "type": "route",
+          "local_idx": 7,
+          "ident_vocab_idx": 176,
+          "is_focal": null,
+          "saliency": 0.07218940556049347
+        },
+        {
+          "type": "track",
+          "local_idx": 19,
+          "ident_vocab_idx": 110,
+          "is_focal": null,
+          "saliency": 0.07179007679224014
+        },
+        {
+          "type": "signal",
+          "local_idx": 5,
+          "ident_vocab_idx": 81,
+          "is_focal": null,
+          "saliency": 0.059092432260513306
+        },
+        {
+          "type": "track",
+          "local_idx": 3,
+          "ident_vocab_idx": 88,
+          "is_focal": null,
+          "saliency": 0.0580173060297966
+        },
+        {
+          "type": "track",
+          "local_idx": 13,
+          "ident_vocab_idx": 201,
+          "is_focal": null,
+          "saliency": 0.05622216686606407
+        }
+      ]
+    },
+    {
+      "sample_id": 1875910,
+      "stratum": "call_on",
+      "focal_train": "****",
+      "t": "2024-04-11 17:58:34",
+      "target_action": 5,
+      "q_target": -0.2312788963317871,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 32,
+          "ident_vocab_idx": 195,
+          "is_focal": null,
+          "saliency": 1.5760685205459595
+        },
+        {
+          "type": "track",
+          "local_idx": 47,
+          "ident_vocab_idx": 148,
+          "is_focal": null,
+          "saliency": 1.332552194595337
+        },
+        {
+          "type": "route",
+          "local_idx": 3,
+          "ident_vocab_idx": 197,
+          "is_focal": null,
+          "saliency": 0.9225386381149292
+        },
+        {
+          "type": "track",
+          "local_idx": 51,
+          "ident_vocab_idx": 114,
+          "is_focal": null,
+          "saliency": 0.7799073457717896
+        },
+        {
+          "type": "track",
+          "local_idx": 26,
+          "ident_vocab_idx": 230,
+          "is_focal": null,
+          "saliency": 0.5015212297439575
+        },
+        {
+          "type": "track",
+          "local_idx": 34,
+          "ident_vocab_idx": 194,
+          "is_focal": null,
+          "saliency": 0.44964325428009033
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.4471692442893982
+        },
+        {
+          "type": "signal",
+          "local_idx": 2,
+          "ident_vocab_idx": 79,
+          "is_focal": null,
+          "saliency": 0.3610211908817291
+        },
+        {
+          "type": "signal",
+          "local_idx": 11,
+          "ident_vocab_idx": 14,
+          "is_focal": null,
+          "saliency": 0.35943907499313354
+        },
+        {
+          "type": "signal",
+          "local_idx": 9,
+          "ident_vocab_idx": 25,
+          "is_focal": null,
+          "saliency": 0.3417820632457733
+        }
+      ]
+    },
+    {
+      "sample_id": 1875911,
+      "stratum": "priority_compete",
+      "focal_train": "****",
+      "t": "2024-04-11 18:05:21",
+      "target_action": 1,
+      "q_target": 0.26558583974838257,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 14,
+          "ident_vocab_idx": 152,
+          "is_focal": null,
+          "saliency": 1.0066790580749512
+        },
+        {
+          "type": "track",
+          "local_idx": 36,
+          "ident_vocab_idx": 110,
+          "is_focal": null,
+          "saliency": 0.9288589954376221
+        },
+        {
+          "type": "track",
+          "local_idx": 46,
+          "ident_vocab_idx": 181,
+          "is_focal": null,
+          "saliency": 0.8639447689056396
+        },
+        {
+          "type": "signal",
+          "local_idx": 0,
+          "ident_vocab_idx": 11,
+          "is_focal": null,
+          "saliency": 0.7593986988067627
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 1,
+          "is_focal": true,
+          "saliency": 0.40116822719573975
+        },
+        {
+          "type": "route",
+          "local_idx": 13,
+          "ident_vocab_idx": 251,
+          "is_focal": null,
+          "saliency": 0.3361218273639679
+        },
+        {
+          "type": "track",
+          "local_idx": 18,
+          "ident_vocab_idx": 161,
+          "is_focal": null,
+          "saliency": 0.3222949802875519
+        },
+        {
+          "type": "signal",
+          "local_idx": 14,
+          "ident_vocab_idx": 25,
+          "is_focal": null,
+          "saliency": 0.30276042222976685
+        },
+        {
+          "type": "signal",
+          "local_idx": 6,
+          "ident_vocab_idx": 93,
+          "is_focal": null,
+          "saliency": 0.2852132022380829
+        },
+        {
+          "type": "track",
+          "local_idx": 22,
+          "ident_vocab_idx": 111,
+          "is_focal": null,
+          "saliency": 0.23938041925430298
+        }
+      ]
+    },
+    {
+      "sample_id": 469372,
+      "stratum": "trivial",
+      "focal_train": "0D01",
+      "t": "2024-03-29 10:31:25",
+      "target_action": 2,
+      "q_target": -0.038562431931495667,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 0,
+          "ident_vocab_idx": 207,
+          "is_focal": null,
+          "saliency": 0.13448575139045715
+        },
+        {
+          "type": "track",
+          "local_idx": 5,
+          "ident_vocab_idx": 210,
+          "is_focal": null,
+          "saliency": 0.10786227136850357
+        },
+        {
+          "type": "track",
+          "local_idx": 3,
+          "ident_vocab_idx": 208,
+          "is_focal": null,
+          "saliency": 0.09136984497308731
+        },
+        {
+          "type": "route",
+          "local_idx": 3,
+          "ident_vocab_idx": 131,
+          "is_focal": null,
+          "saliency": 0.08674435317516327
+        },
+        {
+          "type": "signal",
+          "local_idx": 2,
+          "ident_vocab_idx": 72,
+          "is_focal": null,
+          "saliency": 0.0814526230096817
+        },
+        {
+          "type": "track",
+          "local_idx": 6,
+          "ident_vocab_idx": 209,
+          "is_focal": null,
+          "saliency": 0.05244726687669754
+        },
+        {
+          "type": "signal",
+          "local_idx": 1,
+          "ident_vocab_idx": 73,
+          "is_focal": null,
+          "saliency": 0.0501418374478817
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 85,
+          "is_focal": true,
+          "saliency": 0.04504919424653053
+        },
+        {
+          "type": "track",
+          "local_idx": 1,
+          "ident_vocab_idx": 38,
+          "is_focal": null,
+          "saliency": 0.029244594275951385
+        },
+        {
+          "type": "route",
+          "local_idx": 2,
+          "ident_vocab_idx": 130,
+          "is_focal": null,
+          "saliency": 0.028688272461295128
+        }
+      ]
+    },
+    {
+      "sample_id": 469373,
+      "stratum": "trivial",
+      "focal_train": "0D01",
+      "t": "2024-03-29 10:32:44",
+      "target_action": 1,
+      "q_target": -0.7721176147460938,
+      "top_nodes": [
+        {
+          "type": "route",
+          "local_idx": 6,
+          "ident_vocab_idx": 129,
+          "is_focal": null,
+          "saliency": 0.3895459771156311
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 85,
+          "is_focal": true,
+          "saliency": 0.21162213385105133
+        },
+        {
+          "type": "track",
+          "local_idx": 5,
+          "ident_vocab_idx": 205,
+          "is_focal": null,
+          "saliency": 0.046746574342250824
+        },
+        {
+          "type": "track",
+          "local_idx": 2,
+          "ident_vocab_idx": 210,
+          "is_focal": null,
+          "saliency": 0.03518672287464142
+        },
+        {
+          "type": "track",
+          "local_idx": 1,
+          "ident_vocab_idx": 211,
+          "is_focal": null,
+          "saliency": 0.032858673483133316
+        },
+        {
+          "type": "track",
+          "local_idx": 7,
+          "ident_vocab_idx": 212,
+          "is_focal": null,
+          "saliency": 0.031046494841575623
+        },
+        {
+          "type": "signal",
+          "local_idx": 2,
+          "ident_vocab_idx": 65,
+          "is_focal": null,
+          "saliency": 0.030074117705225945
+        },
+        {
+          "type": "track",
+          "local_idx": 0,
+          "ident_vocab_idx": 214,
+          "is_focal": null,
+          "saliency": 0.027834905311465263
+        },
+        {
+          "type": "signal",
+          "local_idx": 0,
+          "ident_vocab_idx": 72,
+          "is_focal": null,
+          "saliency": 0.02682732231914997
+        },
+        {
+          "type": "track",
+          "local_idx": 4,
+          "ident_vocab_idx": 213,
+          "is_focal": null,
+          "saliency": 0.02504388429224491
+        }
+      ]
+    },
+    {
+      "sample_id": 883215,
+      "stratum": "late_train",
+      "focal_train": "0D10",
+      "t": "2024-04-15 06:39:08",
+      "target_action": 1,
+      "q_target": -0.9091259241104126,
+      "top_nodes": [
+        {
+          "type": "route",
+          "local_idx": 14,
+          "ident_vocab_idx": 238,
+          "is_focal": null,
+          "saliency": 0.31636109948158264
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 88,
+          "is_focal": true,
+          "saliency": 0.25601041316986084
+        },
+        {
+          "type": "track",
+          "local_idx": 35,
+          "ident_vocab_idx": 114,
+          "is_focal": null,
+          "saliency": 0.14068879187107086
+        },
+        {
+          "type": "track",
+          "local_idx": 49,
+          "ident_vocab_idx": 234,
+          "is_focal": null,
+          "saliency": 0.12501591444015503
+        },
+        {
+          "type": "track",
+          "local_idx": 45,
+          "ident_vocab_idx": 183,
+          "is_focal": null,
+          "saliency": 0.10800886899232864
+        },
+        {
+          "type": "track",
+          "local_idx": 25,
+          "ident_vocab_idx": 148,
+          "is_focal": null,
+          "saliency": 0.08102232962846756
+        },
+        {
+          "type": "track",
+          "local_idx": 30,
+          "ident_vocab_idx": 233,
+          "is_focal": null,
+          "saliency": 0.05447663366794586
+        },
+        {
+          "type": "track",
+          "local_idx": 12,
+          "ident_vocab_idx": 229,
+          "is_focal": null,
+          "saliency": 0.053311802446842194
+        },
+        {
+          "type": "track",
+          "local_idx": 0,
+          "ident_vocab_idx": 150,
+          "is_focal": null,
+          "saliency": 0.04880399629473686
+        },
+        {
+          "type": "signal",
+          "local_idx": 13,
+          "ident_vocab_idx": 87,
+          "is_focal": null,
+          "saliency": 0.04721682891249657
+        }
+      ]
+    },
+    {
+      "sample_id": 883220,
+      "stratum": "late_train",
+      "focal_train": "0D10",
+      "t": "2024-04-15 06:41:07",
+      "target_action": 2,
+      "q_target": -1.574929118156433,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 8,
+          "ident_vocab_idx": 228,
+          "is_focal": null,
+          "saliency": 2.1626884937286377
+        },
+        {
+          "type": "track",
+          "local_idx": 42,
+          "ident_vocab_idx": 166,
+          "is_focal": null,
+          "saliency": 1.5703436136245728
+        },
+        {
+          "type": "track",
+          "local_idx": 22,
+          "ident_vocab_idx": 227,
+          "is_focal": null,
+          "saliency": 0.9118161201477051
+        },
+        {
+          "type": "track",
+          "local_idx": 45,
+          "ident_vocab_idx": 195,
+          "is_focal": null,
+          "saliency": 0.8617185354232788
+        },
+        {
+          "type": "track",
+          "local_idx": 40,
+          "ident_vocab_idx": 161,
+          "is_focal": null,
+          "saliency": 0.7728422284126282
+        },
+        {
+          "type": "track",
+          "local_idx": 23,
+          "ident_vocab_idx": 194,
+          "is_focal": null,
+          "saliency": 0.5868647694587708
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 88,
+          "is_focal": true,
+          "saliency": 0.5019954442977905
+        },
+        {
+          "type": "track",
+          "local_idx": 28,
+          "ident_vocab_idx": 229,
+          "is_focal": null,
+          "saliency": 0.4849798083305359
+        },
+        {
+          "type": "track",
+          "local_idx": 52,
+          "ident_vocab_idx": 226,
+          "is_focal": null,
+          "saliency": 0.4592666029930115
+        },
+        {
+          "type": "track",
+          "local_idx": 30,
+          "ident_vocab_idx": 162,
+          "is_focal": null,
+          "saliency": 0.4590119421482086
+        }
+      ]
+    },
+    {
+      "sample_id": 1883047,
+      "stratum": "platform_dev",
+      "focal_train": "0R57",
+      "t": "2024-03-18 05:41:29",
+      "target_action": 5,
+      "q_target": -3.6538352966308594,
+      "top_nodes": [
+        {
+          "type": "signal",
+          "local_idx": 6,
+          "ident_vocab_idx": 98,
+          "is_focal": null,
+          "saliency": 0.7317090630531311
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 195,
+          "is_focal": true,
+          "saliency": 0.7221863865852356
+        },
+        {
+          "type": "route",
+          "local_idx": 2,
+          "ident_vocab_idx": 197,
+          "is_focal": null,
+          "saliency": 0.40885624289512634
+        },
+        {
+          "type": "track",
+          "local_idx": 29,
+          "ident_vocab_idx": 178,
+          "is_focal": null,
+          "saliency": 0.3716730773448944
+        },
+        {
+          "type": "signal",
+          "local_idx": 4,
+          "ident_vocab_idx": 17,
+          "is_focal": null,
+          "saliency": 0.3652086853981018
+        },
+        {
+          "type": "signal",
+          "local_idx": 1,
+          "ident_vocab_idx": 89,
+          "is_focal": null,
+          "saliency": 0.26107996702194214
+        },
+        {
+          "type": "track",
+          "local_idx": 41,
+          "ident_vocab_idx": 112,
+          "is_focal": null,
+          "saliency": 0.18149639666080475
+        },
+        {
+          "type": "track",
+          "local_idx": 24,
+          "ident_vocab_idx": 181,
+          "is_focal": null,
+          "saliency": 0.17479506134986877
+        },
+        {
+          "type": "route",
+          "local_idx": 10,
+          "ident_vocab_idx": 214,
+          "is_focal": null,
+          "saliency": 0.1721765100955963
+        },
+        {
+          "type": "track",
+          "local_idx": 27,
+          "ident_vocab_idx": 180,
+          "is_focal": null,
+          "saliency": 0.1460593044757843
+        }
+      ]
+    },
+    {
+      "sample_id": 608284,
+      "stratum": "platform_dev",
+      "focal_train": "0Z11",
+      "t": "2024-04-01 16:43:05",
+      "target_action": 12,
+      "q_target": -3.0356531143188477,
+      "top_nodes": [
+        {
+          "type": "track",
+          "local_idx": 42,
+          "ident_vocab_idx": 79,
+          "is_focal": null,
+          "saliency": 2.5249485969543457
+        },
+        {
+          "type": "track",
+          "local_idx": 18,
+          "ident_vocab_idx": 81,
+          "is_focal": null,
+          "saliency": 1.5259251594543457
+        },
+        {
+          "type": "trn",
+          "local_idx": 0,
+          "ident_vocab_idx": 228,
+          "is_focal": true,
+          "saliency": 0.913089394569397
+        },
+        {
+          "type": "route",
+          "local_idx": 2,
+          "ident_vocab_idx": 251,
+          "is_focal": null,
+          "saliency": 0.6671838760375977
+        },
+        {
+          "type": "signal",
+          "local_idx": 7,
+          "ident_vocab_idx": 1,
+          "is_focal": null,
+          "saliency": 0.4504975378513336
+        },
+        {
+          "type": "track",
+          "local_idx": 28,
+          "ident_vocab_idx": 82,
+          "is_focal": null,
+          "saliency": 0.402466744184494
+        },
+        {
+          "type": "signal",
+          "local_idx": 12,
+          "ident_vocab_idx": 4,
+          "is_focal": null,
+          "saliency": 0.3866550326347351
+        },
+        {
+          "type": "track",
+          "local_idx": 20,
+          "ident_vocab_idx": 80,
+          "is_focal": null,
+          "saliency": 0.3483760952949524
+        },
+        {
+          "type": "track",
+          "local_idx": 11,
+          "ident_vocab_idx": 166,
+          "is_focal": null,
+          "saliency": 0.1528303325176239
+        },
+        {
+          "type": "track",
+          "local_idx": 49,
+          "ident_vocab_idx": 89,
+          "is_focal": null,
+          "saliency": 0.14761443436145782
+        }
+      ]
+    }
+  ]
+}

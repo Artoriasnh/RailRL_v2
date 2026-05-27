@@ -1,0 +1,46 @@
+{
+  "n_decisions": 1999623,
+  "by_label": {
+    "wait": 1453205,
+    "set": 546418
+  },
+  "n_episodes": 82858,
+  "sample_id_range": [
+    0,
+    1999622
+  ],
+  "r_total_describe": {
+    "count": 1999623.0,
+    "mean": -0.10572190473344326,
+    "std": 0.586538832651271,
+    "min": -30.5,
+    "25%": -0.3,
+    "50%": -0.3,
+    "75%": 0.45,
+    "max": 30.5
+  },
+  "components_mean": {
+    "r_delay": -0.010261535453834042,
+    "r_throughput": 0.13555642738656237,
+    "r_headway": -0.012994949547989796,
+    "r_wait": -0.21802184711818176
+  },
+  "feature_coverage": {
+    "approach_distance": 261178,
+    "delay_change_seconds": 685715,
+    "next_tc_headway_seconds": 527494,
+    "route_outcome": 546418
+  },
+  "weights": {
+    "w_delay": 1.0,
+    "w_throughput": 0.5,
+    "w_headway": 1.0,
+    "w_wait": 0.3
+  },
+  "thresholds": {
+    "H_min_seconds": 147.0,
+    "d_gate_05_max": 6,
+    "d_gate_01_max": 16,
+    "window_seconds": 4201.949999999997
+  }
+}
