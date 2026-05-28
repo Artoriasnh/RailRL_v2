@@ -1,0 +1,1104 @@
+{
+  "TDAB": [
+    "TDAC",
+    "TPSU"
+  ],
+  "TDAC": [
+    "TDAB",
+    "TDAE"
+  ],
+  "TFBY": [
+    "TFBW",
+    "TYTS"
+  ],
+  "TFBW": [
+    "TFBY"
+  ],
+  "TNGW": [
+    "TDCB",
+    "TNGU"
+  ],
+  "TDCB": [
+    "TDCA",
+    "TDCF",
+    "TDCG",
+    "TNGW",
+    "TRJS"
+  ],
+  "TDCF": [
+    "TDCB",
+    "TDCG",
+    "TFDU"
+  ],
+  "TDCG": [
+    "TDCB",
+    "TDCF",
+    "TDCH",
+    "TFDU"
+  ],
+  "TDCH": [
+    "TDCG",
+    "TDCK"
+  ],
+  "TFDU": [
+    "TDCF",
+    "TDCG",
+    "TDCS",
+    "TFDR",
+    "TFDS",
+    "TFDW"
+  ],
+  "TDCS": [
+    "TFDR",
+    "TFDU"
+  ],
+  "TFDR": [
+    "TDCS",
+    "TEDC",
+    "TFDP",
+    "TFDS",
+    "TFDU"
+  ],
+  "TFDP": [
+    "TFDM",
+    "TFDR"
+  ],
+  "TFDS": [
+    "TEDB",
+    "TFDR",
+    "TFDU"
+  ],
+  "TEDB": [
+    "TEDA",
+    "TEDC",
+    "TFDS"
+  ],
+  "TEDC": [
+    "TEDB",
+    "TEDG",
+    "TFDR",
+    "TGAS"
+  ],
+  "TEDG": [
+    "TEDC",
+    "TEDH"
+  ],
+  "TEDH": [
+    "TEDG",
+    "TEDJ"
+  ],
+  "TEDJ": [
+    "TEDH",
+    "TEDK"
+  ],
+  "TGAS": [
+    "TEDC",
+    "TGAR"
+  ],
+  "TGAR": [
+    "TGAM",
+    "TGAS"
+  ],
+  "TGAM": [
+    "TGAL",
+    "TGAR"
+  ],
+  "TRJS": [
+    "TDCB",
+    "TRJV"
+  ],
+  "TDCA": [
+    "TDCB",
+    "TDPK"
+  ],
+  "TFDY": [
+    "TECW",
+    "TFDW",
+    "TFML"
+  ],
+  "TFDW": [
+    "TFDU",
+    "TFDY"
+  ],
+  "TDAE": [
+    "TDAC",
+    "TDAF"
+  ],
+  "TDAF": [
+    "TDAE",
+    "TDAG"
+  ],
+  "TECW": [
+    "TECV",
+    "TEDA",
+    "TFDY",
+    "TGAU"
+  ],
+  "TGAU": [
+    "TECW",
+    "TGAW"
+  ],
+  "TGAW": [
+    "TGAU",
+    "TNJS"
+  ],
+  "TECV": [
+    "TECS",
+    "TECW"
+  ],
+  "TECS": [
+    "TECR",
+    "TECV"
+  ],
+  "TFML": [
+    "TFDY",
+    "TFMN"
+  ],
+  "TFMN": [
+    "TFML",
+    "TFMP"
+  ],
+  "TFMP": [
+    "TFMN",
+    "TFMR"
+  ],
+  "TDPK": [
+    "TDCA",
+    "TDPJ"
+  ],
+  "TDPJ": [
+    "TDPG",
+    "TDPK"
+  ],
+  "TDPG": [
+    "TDPF",
+    "TDPJ"
+  ],
+  "TRJV": [
+    "TRJS",
+    "TRJW"
+  ],
+  "TRJW": [
+    "TRJV",
+    "TRJY"
+  ],
+  "TRJY": [
+    "TRJW",
+    "TRKA"
+  ],
+  "TNGU": [
+    "TNGS",
+    "TNGW"
+  ],
+  "TNGS": [
+    "TNGR",
+    "TNGU"
+  ],
+  "TNGR": [
+    "TNGM",
+    "TNGS"
+  ],
+  "TFBU": [
+    "TFBR"
+  ],
+  "TFBR": [
+    "TFBP",
+    "TFBU"
+  ],
+  "TDCK": [
+    "TDCH",
+    "TDCL"
+  ],
+  "TYTS": [
+    "TFBY",
+    "TYTV"
+  ],
+  "TYTV": [
+    "TYTS",
+    "TYTW"
+  ],
+  "TYTW": [
+    "TYTV",
+    "TYVA"
+  ],
+  "TFDM": [
+    "TFDK",
+    "TFDP"
+  ],
+  "TFDK": [
+    "TFDG",
+    "TFDM"
+  ],
+  "TPSU": [
+    "TDAB",
+    "TPSM"
+  ],
+  "TPSM": [
+    "TPSL",
+    "TPSU"
+  ],
+  "TPSL": [
+    "TPSJ",
+    "TPSM"
+  ],
+  "TDAG": [
+    "TDAF",
+    "TDAJ"
+  ],
+  "TDAJ": [
+    "TDAG",
+    "TDAK"
+  ],
+  "TDAK": [
+    "TDAJ",
+    "TDAL",
+    "TFBK"
+  ],
+  "TDAL": [
+    "TDAK",
+    "TDAP",
+    "TFBK"
+  ],
+  "TDAP": [
+    "TDAL",
+    "TDAR"
+  ],
+  "TDAR": [
+    "TDAP",
+    "TDAU"
+  ],
+  "TDAU": [
+    "TDAR",
+    "TDAV"
+  ],
+  "TFMJ": [
+    "TFDB",
+    "TFMH"
+  ],
+  "TFDB": [
+    "TFBE",
+    "TFDC",
+    "TFMJ"
+  ],
+  "TFDC": [
+    "TFDB",
+    "TFDE"
+  ],
+  "TFDE": [
+    "TDCR",
+    "TFDC",
+    "TFDG"
+  ],
+  "TFDG": [
+    "TFDE",
+    "TFDK"
+  ],
+  "TFBE": [
+    "TFBD",
+    "TFBG",
+    "TFDB"
+  ],
+  "TFBG": [
+    "TDCR",
+    "TFBE",
+    "TFBK"
+  ],
+  "TDCR": [
+    "TDCM",
+    "TFBG",
+    "TFDE"
+  ],
+  "TDCM": [
+    "TDCL",
+    "TDCR",
+    "TFBN"
+  ],
+  "TDCL": [
+    "TDCK",
+    "TDCM"
+  ],
+  "TFBK": [
+    "TDAK",
+    "TDAL",
+    "TFBG",
+    "TFBN"
+  ],
+  "TFBN": [
+    "TDCM",
+    "TFBK",
+    "TFBP"
+  ],
+  "TFBP": [
+    "TFBN",
+    "TFBR"
+  ],
+  "TFBD": [
+    "TFAW",
+    "TFBE"
+  ],
+  "TFMC": [
+    "TFMB",
+    "TFMD"
+  ],
+  "TFMD": [
+    "TFMC",
+    "TFME"
+  ],
+  "TFME": [
+    "TFMD",
+    "TFMH"
+  ],
+  "TFMH": [
+    "TFME",
+    "TFMJ"
+  ],
+  "TDAV": [
+    "TDAU",
+    "TDAW"
+  ],
+  "TDAW": [
+    "TDAV",
+    "TDBA",
+    "TFAS"
+  ],
+  "TDBA": [
+    "TDAW",
+    "TDBC",
+    "TDEB"
+  ],
+  "TDEB": [
+    "TDBA",
+    "TDEC"
+  ],
+  "TDEC": [
+    "TDEB",
+    "TDEG"
+  ],
+  "TDEG": [
+    "TDEC",
+    "TDEK"
+  ],
+  "TDBC": [
+    "TDBA",
+    "TDBE"
+  ],
+  "TDBE": [
+    "TDBC",
+    "TDBF"
+  ],
+  "TFAL": [
+    "TFAK",
+    "TFAM"
+  ],
+  "TFAM": [
+    "TFAL",
+    "TFAS"
+  ],
+  "TFAS": [
+    "TDAW",
+    "TFAM",
+    "TFAW"
+  ],
+  "TFAW": [
+    "TFAS",
+    "TFBD"
+  ],
+  "TDBF": [
+    "TDBE",
+    "TDBH"
+  ],
+  "TDBH": [
+    "TDBF",
+    "TDBK",
+    "TFAH"
+  ],
+  "TDBK": [
+    "TDBH",
+    "TDBL",
+    "TFAG"
+  ],
+  "TDBL": [
+    "TDBK",
+    "TDBN",
+    "TDEK"
+  ],
+  "TDBN": [
+    "TDBL"
+  ],
+  "TFAH": [
+    "TDBH",
+    "TFAG",
+    "TFAJ"
+  ],
+  "TFAJ": [
+    "TFAH",
+    "TFAK",
+    "TFMB"
+  ],
+  "TFMB": [
+    "TFAJ",
+    "TFMC"
+  ],
+  "TFAK": [
+    "TFAJ",
+    "TFAL"
+  ],
+  "TDEK": [
+    "TDBL",
+    "TDEG"
+  ],
+  "TFAB": [
+    "TFAE",
+    "TFEY"
+  ],
+  "TFAE": [
+    "TFAB",
+    "TFAG"
+  ],
+  "TFAG": [
+    "TDBK",
+    "TFAE",
+    "TFAH"
+  ],
+  "TPSF": [
+    "TPSD",
+    "TPSG"
+  ],
+  "TPSG": [
+    "TPSF",
+    "TPSH"
+  ],
+  "TPSH": [
+    "TPSG",
+    "TPSJ",
+    "TYVB"
+  ],
+  "TPSJ": [
+    "TPSH",
+    "TPSL"
+  ],
+  "TYVB": [
+    "TPSH",
+    "TYVA",
+    "TYVC"
+  ],
+  "TYVC": [
+    "TYVB",
+    "TYVD"
+  ],
+  "TYVD": [
+    "TYVC",
+    "TYVG"
+  ],
+  "TYVG": [
+    "TYVD",
+    "TYVJ"
+  ],
+  "TYVA": [
+    "TYTW",
+    "TYVB"
+  ],
+  "TNGF": [
+    "TNGE",
+    "TNGJ"
+  ],
+  "TNGJ": [
+    "TNGF",
+    "TNGK"
+  ],
+  "TNGK": [
+    "TNGJ",
+    "TNGM",
+    "TRKC"
+  ],
+  "TNGM": [
+    "TNGK",
+    "TNGR",
+    "TRKA"
+  ],
+  "TRKA": [
+    "TNGM",
+    "TRJY",
+    "TRKB",
+    "TRKC"
+  ],
+  "TRKG": [
+    "TRKE",
+    "TRKH"
+  ],
+  "TRKE": [
+    "TRKC",
+    "TRKD",
+    "TRKG"
+  ],
+  "TRKC": [
+    "TDPC",
+    "TDPE",
+    "TNGK",
+    "TRKA",
+    "TRKB",
+    "TRKE"
+  ],
+  "TRKB": [
+    "TDPE",
+    "TRKA",
+    "TRKC"
+  ],
+  "TPSC": [
+    "TPSB"
+  ],
+  "TPSB": [
+    "TPRZ",
+    "TPSC",
+    "TPSD"
+  ],
+  "TPRZ": [
+    "TPRW",
+    "TPSB",
+    "TYVL"
+  ],
+  "TPRW": [
+    "TPRU",
+    "TPRZ"
+  ],
+  "TPRU": [
+    "TPRM",
+    "TPRW"
+  ],
+  "TRKM": [
+    "TNGB",
+    "TRKL",
+    "TRKN"
+  ],
+  "TRKN": [
+    "TRKM",
+    "TYVN"
+  ],
+  "TYVN": [
+    "TRKN",
+    "TYVM",
+    "TYVR"
+  ],
+  "TYVR": [
+    "TYVN"
+  ],
+  "TNGB": [
+    "TNGC",
+    "TRKM",
+    "TYVK"
+  ],
+  "TYVK": [
+    "TNGB",
+    "TYVJ",
+    "TYVL"
+  ],
+  "TYVL": [
+    "TPRZ",
+    "TYVK",
+    "TYVM"
+  ],
+  "TNGC": [
+    "TNGB",
+    "TNGD"
+  ],
+  "TYVM": [
+    "TYVL",
+    "TYVN"
+  ],
+  "TYVJ": [
+    "TYVG",
+    "TYVK"
+  ],
+  "TPSD": [
+    "TPSB",
+    "TPSF"
+  ],
+  "TNGD": [
+    "TNGC",
+    "TNGE"
+  ],
+  "TNGE": [
+    "TNGD",
+    "TNGF"
+  ],
+  "TRKL": [
+    "TRKJ",
+    "TRKM"
+  ],
+  "TRKJ": [
+    "TRKH",
+    "TRKL"
+  ],
+  "TRKH": [
+    "TRKG",
+    "TRKJ"
+  ],
+  "TYSB": [
+    "TVS",
+    "TYSC",
+    "TYVS",
+    "TYVU"
+  ],
+  "TYVU": [
+    "TVS",
+    "TYSB",
+    "TYVS",
+    "TYVW"
+  ],
+  "TYVS": [
+    "TPRM",
+    "TYSB",
+    "TYVU"
+  ],
+  "TPRM": [
+    "TPRJ",
+    "TPRU",
+    "TVS",
+    "TYVS"
+  ],
+  "TYSC": [
+    "TYSB"
+  ],
+  "TYVW": [
+    "TRKS",
+    "TYVU",
+    "TYWB"
+  ],
+  "TRKS": [
+    "TRKU",
+    "TYVW"
+  ],
+  "TRKU": [
+    "TRKS"
+  ],
+  "TYWB": [
+    "TYVW"
+  ],
+  "TVS": [
+    "TPRM",
+    "TYSB",
+    "TYVU"
+  ],
+  "TNJC": [
+    "TPRJ"
+  ],
+  "TPRJ": [
+    "TNJC",
+    "TPRM"
+  ],
+  "TPRE": [
+    "TPRG"
+  ],
+  "TPRG": [
+    "TNJB",
+    "TPRE",
+    "TPRH"
+  ],
+  "TNJB": [
+    "TPRG"
+  ],
+  "TPRH": [
+    "TPRG"
+  ],
+  "TRKV": [
+    "TYWE"
+  ],
+  "TYWE": [
+    "TRKV",
+    "TYWC"
+  ],
+  "TYWC": [
+    "TYWE"
+  ],
+  "T868": [
+    "T872"
+  ],
+  "T872": [
+    "T868",
+    "T874"
+  ],
+  "T874": [
+    "T872",
+    "T878"
+  ],
+  "T878": [
+    "T874",
+    "T884"
+  ],
+  "T884": [
+    "T878"
+  ],
+  "T885": [
+    "T883"
+  ],
+  "T883": [
+    "T871",
+    "T885"
+  ],
+  "T871": [
+    "T883"
+  ],
+  "T898": [
+    "T902"
+  ],
+  "T902": [
+    "T898",
+    "T904",
+    "T906"
+  ],
+  "T904": [
+    "T902"
+  ],
+  "T906": [
+    "T902"
+  ],
+  "T901": [
+    "T899",
+    "T905"
+  ],
+  "T899": [
+    "T897",
+    "T901",
+    "T940"
+  ],
+  "T897": [
+    "T899"
+  ],
+  "T940": [
+    "T899"
+  ],
+  "T939": [
+    "T908"
+  ],
+  "T908": [
+    "T909",
+    "T939",
+    "T941"
+  ],
+  "T941": [
+    "T908",
+    "T910",
+    "T918"
+  ],
+  "T910": [
+    "T911",
+    "T941"
+  ],
+  "T911": [
+    "T910"
+  ],
+  "T918": [
+    "T920",
+    "T941"
+  ],
+  "T920": [
+    "T918",
+    "T922"
+  ],
+  "T922": [
+    "T920",
+    "T930"
+  ],
+  "T930": [
+    "T922",
+    "T932"
+  ],
+  "T915": [
+    "T909",
+    "T917"
+  ],
+  "T909": [
+    "T907",
+    "T908",
+    "T915"
+  ],
+  "T907": [
+    "T903",
+    "T905",
+    "T909"
+  ],
+  "T905": [
+    "T901",
+    "T907"
+  ],
+  "T903": [
+    "T907"
+  ],
+  "T927": [
+    "T925"
+  ],
+  "T925": [
+    "T921",
+    "T927"
+  ],
+  "T921": [
+    "T917",
+    "T925"
+  ],
+  "T917": [
+    "T915",
+    "T921"
+  ],
+  "TECF": [
+    "TECG",
+    "TECJ"
+  ],
+  "TECG": [
+    "TECF",
+    "TECJ",
+    "TFMY"
+  ],
+  "TFMY": [
+    "TECG",
+    "TFMW",
+    "TFPB"
+  ],
+  "TFMW": [
+    "TDPB",
+    "TFMU",
+    "TFMY"
+  ],
+  "TDPB": [
+    "TDPA",
+    "TDPE",
+    "TDPF",
+    "TFMW"
+  ],
+  "TDPE": [
+    "TDPB",
+    "TRKB",
+    "TRKC"
+  ],
+  "TFMU": [
+    "TECK",
+    "TFMR",
+    "TFMW"
+  ],
+  "TFMR": [
+    "TFMP",
+    "TFMU"
+  ],
+  "TECJ": [
+    "TECF",
+    "TECG",
+    "TECK"
+  ],
+  "TECK": [
+    "TECJ",
+    "TECL",
+    "TFMU"
+  ],
+  "TECL": [
+    "TECK",
+    "TECM"
+  ],
+  "TECM": [
+    "TECL",
+    "TECR",
+    "TNJH"
+  ],
+  "TECR": [
+    "TECM",
+    "TECS",
+    "TNJR"
+  ],
+  "TNJS": [
+    "TGAW",
+    "TNJR"
+  ],
+  "TNJR": [
+    "TECR",
+    "TNJP",
+    "TNJS"
+  ],
+  "TNJH": [
+    "TECM"
+  ],
+  "TNJP": [
+    "TNJR"
+  ],
+  "TFPB": [
+    "TDMZ",
+    "TFMY",
+    "TFPE"
+  ],
+  "TDMZ": [
+    "TDMW",
+    "TDPA",
+    "TFPB"
+  ],
+  "TDMW": [
+    "TDMV",
+    "TDMZ"
+  ],
+  "TEDA": [
+    "TECW",
+    "TEDB"
+  ],
+  "TEDM": [
+    "TEDK",
+    "TEDN",
+    "TGAK"
+  ],
+  "TEDK": [
+    "TEDJ",
+    "TEDM"
+  ],
+  "TEDN": [
+    "TEDM"
+  ],
+  "TGAK": [
+    "TEDM",
+    "TGAJ",
+    "TGAL"
+  ],
+  "TGAJ": [
+    "TGAK"
+  ],
+  "TGAL": [
+    "TGAK",
+    "TGAM"
+  ],
+  "TDMC": [
+    "TDMB",
+    "TDME"
+  ],
+  "TDME": [
+    "TDMC",
+    "TDMF"
+  ],
+  "TDMF": [
+    "TDME",
+    "TDMH"
+  ],
+  "TDMH": [
+    "TDMF"
+  ],
+  "TFPM": [
+    "TFPS"
+  ],
+  "TFPS": [
+    "TFPM",
+    "TFPV"
+  ],
+  "TFPV": [
+    "TFPS"
+  ],
+  "TDMN": [
+    "TDMP"
+  ],
+  "TDMP": [
+    "TDMN",
+    "TDMS"
+  ],
+  "TDMS": [
+    "TDMP",
+    "TDMU"
+  ],
+  "TDMU": [
+    "TDMS",
+    "TDMV",
+    "TFPE"
+  ],
+  "TDMV": [
+    "TDMU",
+    "TDMW",
+    "TECA"
+  ],
+  "TFPG": [
+    "TFPE",
+    "TFPH"
+  ],
+  "TFPE": [
+    "TDMU",
+    "TFPB",
+    "TFPG"
+  ],
+  "TFPH": [
+    "TFPG",
+    "TFPJ"
+  ],
+  "TFPJ": [
+    "TFPH"
+  ],
+  "TECA": [
+    "TDMV"
+  ],
+  "TDPA": [
+    "TDMZ",
+    "TDPB",
+    "TDPC"
+  ],
+  "TDPC": [
+    "TDPA",
+    "TECD",
+    "TRKC"
+  ],
+  "TDPF": [
+    "TDPB",
+    "TDPG"
+  ],
+  "TECD": [
+    "TDPC",
+    "TECB"
+  ],
+  "TECB": [
+    "TECD"
+  ],
+  "TRKD": [
+    "TRKE"
+  ],
+  "T886": [
+    "T888"
+  ],
+  "T888": [
+    "T886",
+    "T892"
+  ],
+  "T892": [
+    "T888",
+    "T894"
+  ],
+  "T894": [
+    "T892"
+  ],
+  "TYWG": [
+    "TYWH"
+  ],
+  "TYWH": [
+    "TYWG"
+  ],
+  "T932": [
+    "T930"
+  ],
+  "T895": [
+    "T891"
+  ],
+  "T891": [
+    "T889",
+    "T895"
+  ],
+  "T889": [
+    "T887",
+    "T891"
+  ],
+  "T887": [
+    "T889"
+  ],
+  "TPRB": [
+    "TPRC"
+  ],
+  "TPRC": [
+    "TPRB"
+  ],
+  "TFEV": [
+    "TFEY"
+  ],
+  "TFEY": [
+    "TFAB",
+    "TFEV"
+  ],
+  "TDMB": [
+    "TDMC"
+  ]
+}

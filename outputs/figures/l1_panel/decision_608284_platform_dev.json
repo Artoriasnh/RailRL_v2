@@ -1,0 +1,131 @@
+{
+  "sample_id": 608284,
+  "stratum": "platform_dev",
+  "focal_route_id": "RTD5045E(M)",
+  "positions": {
+    "TDMC": [
+      92,
+      50
+    ],
+    "TDMF": [
+      88,
+      54
+    ],
+    "TDMH": [
+      86,
+      54
+    ],
+    "TDME": [
+      90,
+      52
+    ],
+    "TFMW": [
+      82,
+      24
+    ],
+    "TDMW": [
+      88,
+      42
+    ],
+    "TDMZ": [
+      88,
+      50
+    ],
+    "TFPB": [
+      90,
+      28
+    ],
+    "TFMY": [
+      86,
+      26
+    ],
+    "TFMU": [
+      78,
+      24
+    ],
+    "TECK": [
+      80,
+      10
+    ],
+    "TECL": [
+      76,
+      10
+    ],
+    "TECM": [
+      72,
+      10
+    ],
+    "TECR": [
+      68,
+      8
+    ],
+    "TECS": [
+      64,
+      8
+    ],
+    "TECV": [
+      60,
+      8
+    ],
+    "5029": [
+      102,
+      48
+    ],
+    "5033": [
+      102,
+      45
+    ]
+  },
+  "sal_by_name": {
+    "TDMC": 2.5249485969543457,
+    "TDMF": 1.5259251594543457,
+    "5029": 0.4504975378513336,
+    "TDMH": 0.402466744184494,
+    "5033": 0.3866550326347351,
+    "TDME": 0.3483760952949524,
+    "TFMW": 0.1528303325176239,
+    "TDMW": 0.14761443436145782,
+    "TDMZ": 0.0,
+    "TFPB": 0.0,
+    "TFMY": 0.0,
+    "TFMU": 0.0,
+    "TECK": 0.0,
+    "TECL": 0.0,
+    "TECM": 0.0,
+    "TECR": 0.0,
+    "TECS": 0.0,
+    "TECV": 0.0
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "RTD5045E(M)",
+        "saliency": 0.6671838760375977,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "0Z11",
+        "saliency": 0.913089394569397,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TDMZ",
+    "TFPB",
+    "TFMY",
+    "TFMW",
+    "TFMU",
+    "TECK",
+    "TECL",
+    "TECM",
+    "TECR",
+    "TECS",
+    "TECV"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_608284_platform_dev.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_608284_platform_dev.png",
+  "focal_train": "0Z11"
+}

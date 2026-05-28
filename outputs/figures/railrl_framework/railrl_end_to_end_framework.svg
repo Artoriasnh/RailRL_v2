@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1060" viewBox="0 0 1900 1060">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#3f5268"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#2f6fb2"/>
+    </marker>
+    <style>
+      .title { font: 700 31px Arial, Helvetica, sans-serif; fill: #1f2937; }
+      .subtitle { font: 400 17px Arial, Helvetica, sans-serif; fill: #5f6b7a; }
+      .panel-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #1f2937; }
+      .panel-tag { font: 700 16px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .box-title { font: 700 15px Arial, Helvetica, sans-serif; fill: #1f2937; }
+      .small { font: 400 13px Arial, Helvetica, sans-serif; fill: #5f6b7a; }
+      .tiny { font: 400 11px Arial, Helvetica, sans-serif; fill: #5f6b7a; }
+      .caption { font: 400 14px Arial, Helvetica, sans-serif; fill: #1f2937; }
+      .rail-title { font: 700 16px Arial, Helvetica, sans-serif; fill: #1f2937; }
+      .arrow { stroke: #3f5268; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .arrow-blue { stroke: #2f6fb2; stroke-width: 2.1; fill: none; marker-end: url(#arrowBlue); }
+      .feedback { stroke: #d48a3a; stroke-width: 2; stroke-dasharray: 8 7; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+
+<rect class="" x="0" y="0" width="1900" height="1060" rx="0" fill="#fbfcff" stroke="none" stroke-width="1.5"/>
+<text class="title" x="58" y="54" text-anchor="start">RailRL end-to-end framework for explainable railway route-setting decisions</text>
+<text class="subtitle" x="60" y="82" text-anchor="start">From operational feed acquisition to leak-controlled offline RL, evaluation, and decision-support evidence</text>
+<rect class="" x="58" y="122" width="330" height="690" rx="18" fill="#dfeeff" stroke="#9fb0c5" stroke-width="1.6"/>
+<circle cx="85" cy="149" r="17" fill="#2f6fb2"/>
+<text class="panel-tag" x="85" y="155" text-anchor="middle">1</text>
+<text class="panel-title" x="112" y="154" text-anchor="start">Operational acquisition</text>
+<rect class="" x="412" y="122" width="330" height="690" rx="18" fill="#e6f5e8" stroke="#9fb0c5" stroke-width="1.6"/>
+<circle cx="439" cy="149" r="17" fill="#2f7d54"/>
+<text class="panel-tag" x="439" y="155" text-anchor="middle">2</text>
+<text class="panel-title" x="466" y="154" text-anchor="start">Structured data basis</text>
+<rect class="" x="766" y="122" width="365" height="690" rx="18" fill="#fff0e4" stroke="#9fb0c5" stroke-width="1.6"/>
+<circle cx="793" cy="149" r="17" fill="#bd6b35"/>
+<text class="panel-tag" x="793" y="155" text-anchor="middle">3</text>
+<text class="panel-title" x="820" y="154" text-anchor="start">Decision MDP dataset</text>
+<rect class="" x="1155" y="122" width="390" height="690" rx="18" fill="#efe9ff" stroke="#9fb0c5" stroke-width="1.6"/>
+<circle cx="1182" cy="149" r="17" fill="#7158b6"/>
+<text class="panel-tag" x="1182" y="155" text-anchor="middle">4</text>
+<text class="panel-title" x="1209" y="154" text-anchor="start">Offline RL model</text>
+<rect class="" x="1569" y="122" width="360" height="690" rx="18" fill="#dff7f4" stroke="#9fb0c5" stroke-width="1.6"/>
+<circle cx="1596" cy="149" r="17" fill="#247f86"/>
+<text class="panel-tag" x="1596" y="155" text-anchor="middle">5</text>
+<text class="panel-title" x="1623" y="154" text-anchor="start">Evaluation and XAI</text>
+<rect class="" x="82" y="192" width="282" height="118" rx="10" fill="#ffffff" stroke="#2f6fb2" stroke-width="1.2"/>
+<rect x="97" y="207" width="22" height="27" rx="3" fill="#ffffff" stroke="#2f6fb2" stroke-width="1.5"/><path d="M 102 215 H 114 M 102 221 H 114 M 102 227 H 110" stroke="#2f6fb2" stroke-width="1.5"/>
+<text class="box-title" x="129" y="216" text-anchor="start"><tspan x="129" dy="0">Operational feed sources</tspan></text>
+<text class="small" x="97" y="246" text-anchor="start"><tspan x="97" dy="0">Train Describer, Train Movements,</tspan><tspan x="97" dy="15">SCHEDULE/VSTP, RTPPM, and static</tspan><tspan x="97" dy="15">reference files.</tspan></text>
+<rect class="" x="82" y="334" width="282" height="132" rx="10" fill="#ffffff" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="box-title" x="97" y="358" text-anchor="start"><tspan x="97" dy="0">Application-based collector</tspan></text>
+<text class="small" x="97" y="388" text-anchor="start"><tspan x="97" dy="0">Feed selection, broker subscription,</tspan><tspan x="97" dy="15">connection checks, runtime logging,</tspan><tspan x="97" dy="15">and acquisition monitoring.</tspan></text>
+<rect class="" x="82" y="492" width="282" height="122" rx="10" fill="#ffffff" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="box-title" x="97" y="516" text-anchor="start"><tspan x="97" dy="0">Continuity support</tspan></text>
+<text class="small" x="97" y="546" text-anchor="start"><tspan x="97" dy="0">Heartbeat detection, safe cleanup,</tspan><tspan x="97" dy="15">bounded retry, subscription</tspan><tspan x="97" dy="15">recovery, and resumed collection.</tspan></text>
+<rect class="" x="82" y="644" width="282" height="112" rx="10" fill="#ffffff" stroke="#2f6fb2" stroke-width="1.2"/>
+<ellipse cx="111" cy="665" rx="14" ry="6" fill="#ffffff" stroke="#2f7d54" stroke-width="1.5"/><path d="M 97 665 V 686 C 97 694, 125 694, 125 686 V 665" fill="#ffffff" stroke="#2f7d54" stroke-width="1.5"/><path d="M 97 676 C 97 684, 125 684, 125 676" fill="none" stroke="#2f7d54" stroke-width="1.2"/>
+<text class="box-title" x="129" y="668" text-anchor="start"><tspan x="129" dy="0">Persistent raw archive</tspan></text>
+<text class="small" x="97" y="698" text-anchor="start"><tspan x="97" dy="0">Feed-specific records are preserved</tspan><tspan x="97" dy="15">for traceability and reproducible</tspan><tspan x="97" dy="15">reconstruction.</tspan></text>
+<path class="arrow" d="M 223 310 L 223 334"/>
+<path class="arrow" d="M 223 466 L 223 492"/>
+<path class="arrow" d="M 223 614 L 223 644"/>
+<rect class="" x="436" y="192" width="282" height="110" rx="10" fill="#ffffff" stroke="#2f7d54" stroke-width="1.2"/>
+<ellipse cx="465" cy="213" rx="14" ry="6" fill="#ffffff" stroke="#2f7d54" stroke-width="1.5"/><path d="M 451 213 V 234 C 451 242, 479 242, 479 234 V 213" fill="#ffffff" stroke="#2f7d54" stroke-width="1.5"/><path d="M 451 224 C 451 232, 479 232, 479 224" fill="none" stroke="#2f7d54" stroke-width="1.2"/>
+<text class="box-title" x="483" y="216" text-anchor="start"><tspan x="483" dy="0">Canonical event store</tspan></text>
+<text class="small" x="451" y="246" text-anchor="start"><tspan x="451" dy="0">Berth transitions, route events,</tspan><tspan x="451" dy="15">track occupancy, signal state, TRTS,</tspan><tspan x="451" dy="15">and movement records.</tspan></text>
+<rect class="" x="436" y="324" width="282" height="126" rx="10" fill="#ffffff" stroke="#2f7d54" stroke-width="1.2"/>
+<path d="M 455 357 L 469 344 M 469 344 L 482 357 M 482 357 L 469 370 M 469 370 L 455 357 M 455 357 L 482 357" stroke="#bd6b35" stroke-width="1.3" fill="none"/><circle cx="455" cy="357" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="469" cy="344" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="482" cy="357" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="469" cy="370" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/>
+<text class="box-title" x="483" y="348" text-anchor="start"><tspan x="483" dy="0">Static railway graph</tspan></text>
+<text class="small" x="451" y="378" text-anchor="start"><tspan x="451" dy="0">Track, signal, route, platform, and</tspan><tspan x="451" dy="15">train-context tables become a typed</tspan><tspan x="451" dy="15">infrastructure graph.</tspan></text>
+<path d="M 514 480 L 548 480" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 548 480 L 582 480" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 514 480 L 532 514" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 548 480 L 532 514" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 548 480 L 566 514" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 582 480 L 566 514" stroke="#7990aa" stroke-width="1.5"/>
+<path d="M 532 514 L 566 514" stroke="#7990aa" stroke-width="1.5"/>
+<circle cx="514" cy="480" r="9" fill="#cfe0ff" stroke="#58708c" stroke-width="1.2"/>
+<circle cx="548" cy="480" r="9" fill="#d8f0dc" stroke="#58708c" stroke-width="1.2"/>
+<circle cx="582" cy="480" r="9" fill="#ffe0c4" stroke="#58708c" stroke-width="1.2"/>
+<circle cx="532" cy="514" r="9" fill="#efe0ff" stroke="#58708c" stroke-width="1.2"/>
+<circle cx="566" cy="514" r="9" fill="#dff7f4" stroke="#58708c" stroke-width="1.2"/>
+<text class="tiny" x="504" y="536" text-anchor="start">heterogeneous railway graph</text>
+<rect class="" x="436" y="578" width="282" height="124" rx="10" fill="#ffffff" stroke="#2f7d54" stroke-width="1.2"/>
+<text class="box-title" x="451" y="602" text-anchor="start"><tspan x="451" dy="0">Data quality gates</tspan></text>
+<text class="small" x="451" y="632" text-anchor="start"><tspan x="451" dy="0">Temporal alignment, continuity</tspan><tspan x="451" dy="15">checks, duplicate handling, coverage</tspan><tspan x="451" dy="15">summaries, and provenance metadata.</tspan></text>
+<rect class="" x="436" y="726" width="282" height="52" rx="10" fill="#ffffff" stroke="#a84d63" stroke-width="1.2"/>
+<text class="box-title" x="451" y="750" text-anchor="start"><tspan x="451" dy="0">Confidential local details are not</tspan><tspan x="451" dy="16">shown.</tspan></text>
+<text class="small" x="451" y="780" text-anchor="start"></text>
+<rect class="" x="790" y="192" width="317" height="108" rx="10" fill="#ffffff" stroke="#bd6b35" stroke-width="1.2"/>
+<text class="box-title" x="805" y="216" text-anchor="start"><tspan x="805" dy="0">Decision-point extraction</tspan></text>
+<text class="small" x="805" y="246" text-anchor="start"><tspan x="805" dy="0">SET decisions from panel requests; WAIT</tspan><tspan x="805" dy="15">decisions from approach observations</tspan><tspan x="805" dy="15">without imminent route setting.</tspan></text>
+<rect class="" x="790" y="322" width="317" height="112" rx="10" fill="#ffffff" stroke="#bd6b35" stroke-width="1.2"/>
+<text class="box-title" x="805" y="346" text-anchor="start"><tspan x="805" dy="0">Dynamic action space</tspan></text>
+<text class="small" x="805" y="376" text-anchor="start"><tspan x="805" dy="0">A_t = {wait} plus feasible route</tspan><tspan x="805" dy="15">candidates for the focal train and signal</tspan><tspan x="805" dy="15">context.</tspan></text>
+<rect class="" x="790" y="456" width="317" height="124" rx="10" fill="#ffffff" stroke="#bd6b35" stroke-width="1.2"/>
+<path d="M 809 489 L 823 476 M 823 476 L 836 489 M 836 489 L 823 502 M 823 502 L 809 489 M 809 489 L 836 489" stroke="#bd6b35" stroke-width="1.3" fill="none"/><circle cx="809" cy="489" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="823" cy="476" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="836" cy="489" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/><circle cx="823" cy="502" r="4.7" fill="#ffffff" stroke="#bd6b35" stroke-width="1.5"/>
+<text class="box-title" x="837" y="480" text-anchor="start"><tspan x="837" dy="0">Leak-controlled state snapshot</tspan></text>
+<text class="small" x="805" y="510" text-anchor="start"><tspan x="805" dy="0">Centered railway subgraph, recent event</tspan><tspan x="805" dy="15">tokens, schedule outlook, other active</tspan><tspan x="805" dy="15">trains, and special-case flags.</tspan></text>
+<rect class="" x="790" y="602" width="317" height="116" rx="10" fill="#ffffff" stroke="#bd6b35" stroke-width="1.2"/>
+<text class="box-title" x="805" y="626" text-anchor="start"><tspan x="805" dy="0">Reward and transitions</tspan></text>
+<text class="small" x="805" y="656" text-anchor="start"><tspan x="805" dy="0">Delay, throughput, headway, and wait</tspan><tspan x="805" dy="15">components; adjacent decisions in each</tspan><tspan x="805" dy="15">episode define s to s&#x27;.</tspan></text>
+<text class="tiny" x="840" y="742" text-anchor="start">event sequence</text>
+<rect x="840" y="752" width="5" height="12" fill="#2f6fb2" opacity="0.75"/>
+<rect x="848" y="752" width="5" height="17" fill="#2f7d54" opacity="0.75"/>
+<rect x="856" y="752" width="5" height="22" fill="#bd6b35" opacity="0.75"/>
+<rect x="864" y="752" width="5" height="27" fill="#7158b6" opacity="0.75"/>
+<rect x="872" y="752" width="5" height="12" fill="#247f86" opacity="0.75"/>
+<rect x="880" y="752" width="5" height="17" fill="#2f6fb2" opacity="0.75"/>
+<rect x="888" y="752" width="5" height="22" fill="#2f7d54" opacity="0.75"/>
+<rect x="896" y="752" width="5" height="27" fill="#bd6b35" opacity="0.75"/>
+<rect x="904" y="752" width="5" height="12" fill="#7158b6" opacity="0.75"/>
+<rect x="912" y="752" width="5" height="17" fill="#247f86" opacity="0.75"/>
+<rect x="920" y="752" width="5" height="22" fill="#2f6fb2" opacity="0.75"/>
+<rect x="928" y="752" width="5" height="27" fill="#2f7d54" opacity="0.75"/>
+<rect x="936" y="752" width="5" height="12" fill="#bd6b35" opacity="0.75"/>
+<rect x="944" y="752" width="5" height="17" fill="#7158b6" opacity="0.75"/>
+<rect x="952" y="752" width="5" height="22" fill="#247f86" opacity="0.75"/>
+<rect x="960" y="752" width="5" height="27" fill="#2f6fb2" opacity="0.75"/>
+<rect x="968" y="752" width="5" height="12" fill="#2f7d54" opacity="0.75"/>
+<rect x="976" y="752" width="5" height="17" fill="#bd6b35" opacity="0.75"/>
+<rect class="" x="1179" y="192" width="342" height="92" rx="10" fill="#ffffff" stroke="#7158b6" stroke-width="1.2"/>
+<rect x="1194" y="207" width="25" height="25" fill="#cfe0ff" stroke="#7158b6" stroke-width="1"/><rect x="1202" y="213" width="25" height="25" fill="#d8f0dc" stroke="#7158b6" stroke-width="1"/><rect x="1210" y="219" width="25" height="25" fill="#efe0ff" stroke="#7158b6" stroke-width="1"/>
+<text class="box-title" x="1226" y="216" text-anchor="start"><tspan x="1226" dy="0">Graph branch</tspan></text>
+<text class="small" x="1194" y="246" text-anchor="start"><tspan x="1194" dy="0">HGT encoder over tracks, signals, routes,</tspan><tspan x="1194" dy="15">and trains.</tspan></text>
+<rect class="" x="1179" y="304" width="342" height="92" rx="10" fill="#ffffff" stroke="#7158b6" stroke-width="1.2"/>
+<text class="box-title" x="1194" y="328" text-anchor="start"><tspan x="1194" dy="0">Event branch</tspan></text>
+<text class="small" x="1194" y="358" text-anchor="start"><tspan x="1194" dy="0">Transformer encoder over the last K=256</tspan><tspan x="1194" dy="15">event tokens.</tspan></text>
+<rect class="" x="1179" y="416" width="342" height="92" rx="10" fill="#ffffff" stroke="#7158b6" stroke-width="1.2"/>
+<text class="box-title" x="1194" y="440" text-anchor="start"><tspan x="1194" dy="0">Context branch</tspan></text>
+<text class="small" x="1194" y="470" text-anchor="start"><tspan x="1194" dy="0">Schedule outlook, scalar state, and special</tspan><tspan x="1194" dy="15">operational flags.</tspan></text>
+<rect class="" x="1227" y="536" width="246" height="88" rx="12" fill="#fff9e6" stroke="#9b7a13" stroke-width="1.3"/>
+<text class="box-title" x="1350" y="564" text-anchor="middle">Fusion representation z</text>
+<text class="small" x="1350" y="588" text-anchor="middle">HGT + Transformer + context</text>
+<path class="arrow" d="M 1350 508 L 1350 536"/>
+<rect x="1277" y="671" width="21" height="30" fill="#8db6e8" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="tiny" x="1287.5" y="716" text-anchor="middle">wait</text>
+<rect x="1312" y="653" width="21" height="48" fill="#8db6e8" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="tiny" x="1322.5" y="716" text-anchor="middle">R1</text>
+<rect x="1347" y="663" width="21" height="38" fill="#8db6e8" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="tiny" x="1357.5" y="716" text-anchor="middle">R2</text>
+<rect x="1382" y="681" width="21" height="20" fill="#8db6e8" stroke="#2f6fb2" stroke-width="1.2"/>
+<text class="tiny" x="1392.5" y="716" text-anchor="middle">R3</text>
+<text class="tiny" x="1277" y="656" text-anchor="start">per-action Q(s,a)</text>
+<rect class="" x="1179" y="734" width="342" height="50" rx="10" fill="#ffffff" stroke="#7158b6" stroke-width="1.2"/>
+<text class="box-title" x="1194" y="758" text-anchor="start"><tspan x="1194" dy="0">CQL training with route/time auxiliary heads</tspan></text>
+<text class="small" x="1194" y="788" text-anchor="start"></text>
+<rect class="" x="1593" y="192" width="312" height="108" rx="10" fill="#ffffff" stroke="#247f86" stroke-width="1.2"/>
+<rect x="1608" y="211" width="32" height="28" rx="3" fill="#ffffff" stroke="#247f86" stroke-width="1.4"/><path d="M 1613 232 L 1620 224 L 1627 228 L 1635 218" fill="none" stroke="#247f86" stroke-width="2"/><path d="M 1613 236 H 1637" stroke="#247f86" stroke-width="1.2"/>
+<text class="box-title" x="1640" y="216" text-anchor="start"><tspan x="1640" dy="0">Overall metrics</tspan></text>
+<text class="small" x="1608" y="246" text-anchor="start"><tspan x="1608" dy="0">Action top-1, set-only route choice,</tspan><tspan x="1608" dy="15">wait precision/recall, route head, time</tspan><tspan x="1608" dy="15">head, and Q-gap.</tspan></text>
+<rect class="" x="1593" y="324" width="312" height="118" rx="10" fill="#ffffff" stroke="#247f86" stroke-width="1.2"/>
+<text class="box-title" x="1608" y="348" text-anchor="start"><tspan x="1608" dy="0">Stratified evaluation</tspan></text>
+<text class="small" x="1608" y="378" text-anchor="start"><tspan x="1608" dy="0">Late trains, call-on, platform</tspan><tspan x="1608" dy="15">deviation, priority competition, unusual</tspan><tspan x="1608" dy="15">IDs, and trivial cases.</tspan></text>
+<rect class="" x="1593" y="466" width="312" height="112" rx="10" fill="#ffffff" stroke="#247f86" stroke-width="1.2"/>
+<text class="box-title" x="1608" y="490" text-anchor="start"><tspan x="1608" dy="0">Replicate and improve</tspan></text>
+<text class="small" x="1608" y="520" text-anchor="start"><tspan x="1608" dy="0">Compare signaller action, model action,</tspan><tspan x="1608" dy="15">rule checks, and counterfactual</tspan><tspan x="1608" dy="15">operational delta.</tspan></text>
+<rect class="" x="1593" y="602" width="312" height="116" rx="10" fill="#ffffff" stroke="#247f86" stroke-width="1.2"/>
+<text class="box-title" x="1608" y="626" text-anchor="start"><tspan x="1608" dy="0">Explainability outputs</tspan></text>
+<text class="small" x="1608" y="656" text-anchor="start"><tspan x="1608" dy="0">Attention/attribution, Q-gap rationale,</tspan><tspan x="1608" dy="15">rule evidence, simulator trace, and</tspan><tspan x="1608" dy="15">decision-support view.</tspan></text>
+<rect class="" x="1593" y="742" width="312" height="42" rx="10" fill="#ffffff" stroke="#247f86" stroke-width="1.2"/>
+<text class="box-title" x="1608" y="766" text-anchor="start"><tspan x="1608" dy="0">Paper evidence: ESWA / T-ITS ready</tspan><tspan x="1608" dy="16">evaluation package</tspan></text>
+<text class="small" x="1608" y="796" text-anchor="start"></text>
+<path class="arrow" d="M 393 472 C 406 472, 394 472, 407 472"/>
+<path class="arrow" d="M 747 472 C 760 472, 748 472, 761 472"/>
+<path class="arrow" d="M 1136 472 C 1149 472, 1137 472, 1150 472"/>
+<path class="arrow" d="M 1550 472 C 1563 472, 1551 472, 1564 472"/>
+<path class="feedback" d="M 1749 742 C 1729 892, 1345 892, 1345 784"/>
+<text class="tiny" x="1405" y="884" text-anchor="start">training / audit feedback</text>
+<rect class="" x="58" y="842" width="1784" height="150" rx="18" fill="#f7e5d6" stroke="#e2b896" stroke-width="1.4"/>
+<text class="rail-title" x="86" y="877" text-anchor="start">Cross-cutting research controls</text>
+<rect class="" x="86" y="896" width="320" height="70" rx="12" fill="#fffaf5" stroke="#d2a47f" stroke-width="1.1"/>
+<text class="box-title" x="104" y="923" text-anchor="start">Traceability</text>
+<text class="tiny" x="104" y="946" text-anchor="start"><tspan x="104" dy="0">raw messages -&gt; canonical records -&gt;</tspan><tspan x="104" dy="13">sample_id</tspan></text>
+<rect class="" x="434" y="896" width="320" height="70" rx="12" fill="#fffaf5" stroke="#d2a47f" stroke-width="1.1"/>
+<text class="box-title" x="452" y="923" text-anchor="start">Temporal causality</text>
+<text class="tiny" x="452" y="946" text-anchor="start"><tspan x="452" dy="0">state uses information available at</tspan><tspan x="452" dy="13">decision time</tspan></text>
+<rect class="" x="782" y="896" width="320" height="70" rx="12" fill="#fffaf5" stroke="#d2a47f" stroke-width="1.1"/>
+<text class="box-title" x="800" y="923" text-anchor="start">Leak control</text>
+<text class="tiny" x="800" y="946" text-anchor="start"><tspan x="800" dy="0">chosen action, rewards, and future</tspan><tspan x="800" dy="13">outcomes excluded from state</tspan></text>
+<rect class="" x="1130" y="896" width="320" height="70" rx="12" fill="#fffaf5" stroke="#d2a47f" stroke-width="1.1"/>
+<text class="box-title" x="1148" y="923" text-anchor="start">Reproducibility</text>
+<text class="tiny" x="1148" y="946" text-anchor="start"><tspan x="1148" dy="0">versioned scripts, summaries,</tspan><tspan x="1148" dy="13">audits, and checkpoints</tspan></text>
+<rect class="" x="1478" y="896" width="320" height="70" rx="12" fill="#fffaf5" stroke="#d2a47f" stroke-width="1.1"/>
+<text class="box-title" x="1496" y="923" text-anchor="start">Confidentiality</text>
+<text class="tiny" x="1496" y="946" text-anchor="start"><tspan x="1496" dy="0">only aggregate event representation</tspan><tspan x="1496" dy="13">is reported</tspan></text>
+<text class="caption" x="70" y="1024" text-anchor="start">Dataset scale: 14 months | 11.8M TD records | 247k movement records | about 2.0M decisions | 1.996M usable MDP snapshots</text>
+<text class="caption" x="1830" y="1024" text-anchor="end">Editable SVG: shapes and labels can be modified directly</text>
+</svg>

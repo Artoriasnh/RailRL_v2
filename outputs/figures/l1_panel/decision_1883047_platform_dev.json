@@ -1,0 +1,107 @@
+{
+  "sample_id": 1883047,
+  "stratum": "platform_dev",
+  "focal_route_id": "REC5488B(M)",
+  "positions": {
+    "TGAJ": [
+      92,
+      16
+    ],
+    "TEDA": [
+      78,
+      14
+    ],
+    "TGAM": [
+      96,
+      12
+    ],
+    "TGAL": [
+      96,
+      14
+    ],
+    "TEDG": [
+      66,
+      14
+    ],
+    "TEDC": [
+      70,
+      14
+    ],
+    "TEDB": [
+      74,
+      14
+    ],
+    "TECW": [
+      72,
+      6
+    ],
+    "TECV": [
+      60,
+      8
+    ],
+    "TECS": [
+      64,
+      8
+    ],
+    "5502": [
+      102,
+      43
+    ],
+    "5056": [
+      102,
+      53
+    ],
+    "5488": [
+      102,
+      58
+    ]
+  },
+  "sal_by_name": {
+    "5502": 0.7317090630531311,
+    "TGAJ": 0.3716730773448944,
+    "5056": 0.3652086853981018,
+    "5488": 0.26107996702194214,
+    "TEDA": 0.18149639666080475,
+    "TGAM": 0.17479506134986877,
+    "TGAL": 0.1460593044757843,
+    "TEDG": 0.0,
+    "TEDC": 0.0,
+    "TEDB": 0.0,
+    "TECW": 0.0,
+    "TECV": 0.0,
+    "TECS": 0.0
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "REC5488B(M)",
+        "saliency": 0.40885624289512634,
+        "is_focal": false
+      },
+      {
+        "name": "REC5491C(S)",
+        "saliency": 0.1721765100955963,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "0R57",
+        "saliency": 0.7221863865852356,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TEDG",
+    "TEDC",
+    "TEDB",
+    "TEDA",
+    "TECW",
+    "TECV",
+    "TECS"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1883047_platform_dev.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1883047_platform_dev.png",
+  "focal_train": "0R57"
+}

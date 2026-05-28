@@ -1,0 +1,14 @@
+Create a clean, publication-ready system architecture diagram for a railway AI paper titled "RailRL System Architecture".
+
+Use a white background and a restrained engineering-journal style. Show a left-to-right pipeline with these blocks:
+1. Operational inputs: train describer events, movement records, schedule/performance records, static infrastructure graph.
+2. Acquisition and provenance service: feed listeners, runtime monitoring, timestamp alignment, versioned raw archive.
+3. Canonical research store: raw archive, normalized datasets, provenance index, reproducible splits.
+4. Decision dataset builder: route-setting decision points, dynamic candidate actions, reward/episode construction, leak-safe state assembly.
+5. Offline RL training core: graph encoder, event-sequence encoder, action mask, per-action Q network, conservative Q-learning, validation gates.
+6. Evaluation and explanation: imitation/baseline metrics, counterfactual evaluation, XAI layers, audit reports.
+7. Decision-support interface: ranked feasible actions, wait/set comparison, uncertainty and explanation summary.
+
+Add a bottom governance rail with compact labels: temporal split, schema tests, leak audit, training gates, counterfactual evidence.
+
+Use concise labels, visible arrows, consistent spacing, and no decorative background. Do not include protected operational-reference details.

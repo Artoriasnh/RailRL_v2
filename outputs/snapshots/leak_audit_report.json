@@ -1,0 +1,10 @@
+{
+  "input": "E:\\Claude\\RailRL_v2\\outputs\\snapshots\\snapshots_v2.parquet",
+  "n_total_audited": 98634,
+  "n_passed": 98634,
+  "n_failed": 0,
+  "pct_passed": 100.0,
+  "first_fail_mode": false,
+  "elapsed_seconds": 4338.2,
+  "first_20_failures": []
+}

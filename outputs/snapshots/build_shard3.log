@@ -1,0 +1,72 @@
+======================================================================
+Stage 3 R3 ¡ª snapshots_v2 builder
+======================================================================
+[1/6] loading decision_points... (E:\Claude\RailRL_v2\outputs\decision_points\decision_points_v2.parquet)
+      1,999,623 decision points
+[2/6] loading TD events... (E:\Claude\RailRL_v2\outputs\cache\td_data.parquet)
+      11,768,797 TD events
+[3/6] loading Movements... (auto-cache from E:\Claude\RailRL_v2\data\raw\Movements.csv)
+      247,310 movement rows
+[4/6] building episode metadata...
+      14,577 episodes / 14,577 passes
+      shard 3/6: 333,270 decisions ¡ú snapshots_v2.part3.parquet
+[5/6] constructing SnapshotBuilder (loads histories)...
+[6/6] building 333,270 snapshots (streaming: flush every 5,000 rows)...
+  ... 6,665/333,270 built  skip=0  audit_fail=0  39.5/s  ETA 138.0min
+  ... 13,330/333,270 built  skip=0  audit_fail=0  44.8/s  ETA 119.1min
+  ... 19,995/333,270 built  skip=0  audit_fail=0  48.5/s  ETA 107.7min
+  ... 26,660/333,270 built  skip=3  audit_fail=0  54.0/s  ETA 94.7min
+  ... 33,325/333,270 built  skip=5  audit_fail=0  56.1/s  ETA 89.1min
+  ... 39,990/333,270 built  skip=5  audit_fail=0  55.5/s  ETA 88.0min
+  ... 46,655/333,270 built  skip=5  audit_fail=0  55.3/s  ETA 86.4min
+  ... 53,320/333,270 built  skip=5  audit_fail=0  54.7/s  ETA 85.2min
+  ... 59,985/333,270 built  skip=5  audit_fail=0  54.4/s  ETA 83.7min
+  ... 66,650/333,270 built  skip=5  audit_fail=0  54.6/s  ETA 81.4min
+  ... 73,315/333,270 built  skip=6  audit_fail=0  55.2/s  ETA 78.5min
+  ... 79,980/333,270 built  skip=15  audit_fail=0  57.2/s  ETA 73.8min
+  ... 86,645/333,270 built  skip=15  audit_fail=0  56.9/s  ETA 72.2min
+  ... 93,310/333,270 built  skip=21  audit_fail=0  57.2/s  ETA 70.0min
+  ... 99,975/333,270 built  skip=21  audit_fail=0  56.4/s  ETA 69.0min
+  ... 106,640/333,270 built  skip=26  audit_fail=0  56.8/s  ETA 66.5min
+  ... 113,305/333,270 built  skip=26  audit_fail=0  55.9/s  ETA 65.6min
+  ... 119,970/333,270 built  skip=27  audit_fail=0  54.9/s  ETA 64.8min
+  ... 126,635/333,270 built  skip=27  audit_fail=0  54.5/s  ETA 63.2min
+  ... 133,300/333,270 built  skip=27  audit_fail=0  54.2/s  ETA 61.5min
+  ... 139,965/333,270 built  skip=27  audit_fail=0  54.7/s  ETA 58.9min
+  ... 146,630/333,270 built  skip=30  audit_fail=0  55.3/s  ETA 56.2min
+  ... 153,295/333,270 built  skip=49  audit_fail=0  56.3/s  ETA 53.2min
+  ... 159,960/333,270 built  skip=50  audit_fail=0  56.4/s  ETA 51.2min
+  ... 166,625/333,270 built  skip=50  audit_fail=0  56.1/s  ETA 49.5min
+  ... 173,290/333,270 built  skip=53  audit_fail=0  55.9/s  ETA 47.7min
+  ... 179,955/333,270 built  skip=57  audit_fail=0  56.3/s  ETA 45.4min
+  ... 186,620/333,270 built  skip=77  audit_fail=0  56.9/s  ETA 42.9min
+  ... 193,285/333,270 built  skip=78  audit_fail=0  57.2/s  ETA 40.7min
+  ... 199,950/333,270 built  skip=79  audit_fail=0  57.7/s  ETA 38.5min
+  ... 206,615/333,270 built  skip=80  audit_fail=0  58.1/s  ETA 36.3min
+  ... 213,280/333,270 built  skip=91  audit_fail=0  58.7/s  ETA 34.1min
+  ... 219,945/333,270 built  skip=96  audit_fail=0  59.1/s  ETA 31.9min
+  ... 226,610/333,270 built  skip=97  audit_fail=0  58.7/s  ETA 30.3min
+  ... 233,275/333,270 built  skip=97  audit_fail=0  58.4/s  ETA 28.5min
+  ... 239,940/333,270 built  skip=97  audit_fail=0  58.0/s  ETA 26.8min
+  ... 246,605/333,270 built  skip=97  audit_fail=0  57.5/s  ETA 25.1min
+  ... 253,270/333,270 built  skip=97  audit_fail=0  57.2/s  ETA 23.3min
+  ... 259,935/333,270 built  skip=98  audit_fail=0  57.0/s  ETA 21.4min
+  ... 266,600/333,270 built  skip=100  audit_fail=0  57.3/s  ETA 19.4min
+  ... 273,265/333,270 built  skip=120  audit_fail=0  57.8/s  ETA 17.3min
+  ... 279,930/333,270 built  skip=121  audit_fail=0  58.1/s  ETA 15.3min
+  ... 286,595/333,270 built  skip=123  audit_fail=0  57.9/s  ETA 13.4min
+  ... 293,260/333,270 built  skip=125  audit_fail=0  58.0/s  ETA 11.5min
+  ... 299,925/333,270 built  skip=128  audit_fail=0  58.1/s  ETA 9.5min
+  ... 306,590/333,270 built  skip=128  audit_fail=0  58.2/s  ETA 7.6min
+  ... 313,255/333,270 built  skip=158  audit_fail=0  58.3/s  ETA 5.7min
+  ... 319,920/333,270 built  skip=271  audit_fail=0  58.1/s  ETA 3.8min
+  ... 326,585/333,270 built  skip=385  audit_fail=0  58.2/s  ETA 1.8min
+
+[write] E:\Claude\RailRL_v2\outputs\snapshots\snapshots_v2.part3.parquet
+        332,769 snapshots written (streamed)
+[write] E:\Claude\RailRL_v2\outputs\snapshots\skipped_no_tc.part3.jsonl  (501 skipped)
+[write] E:\Claude\RailRL_v2\outputs\snapshots\snapshots_v2_summary.part3.json
+
+======================================================================
+DONE: 332,769 snapshots / 501 skipped / 0 audit fails  (6001.0s total)
+======================================================================

@@ -1,0 +1,88 @@
+{
+  "sample_id": 883215,
+  "stratum": "late_train",
+  "focal_route_id": "RTD5043A(S)",
+  "positions": {
+    "TEDC": [
+      70,
+      14
+    ],
+    "TRKG": [
+      68,
+      48
+    ],
+    "TGAS": [
+      92,
+      8
+    ],
+    "TFDR": [
+      18,
+      26
+    ],
+    "TRKE": [
+      70,
+      50
+    ],
+    "TRKA": [
+      72,
+      48
+    ],
+    "TFDU": [
+      14,
+      26
+    ],
+    "TECA": [
+      84,
+      6
+    ],
+    "TDMV": [
+      90,
+      40
+    ],
+    "TDMW": [
+      88,
+      42
+    ],
+    "5486": [
+      102,
+      49
+    ]
+  },
+  "sal_by_name": {
+    "TEDC": 0.14068879187107086,
+    "TRKG": 0.12501591444015503,
+    "TGAS": 0.10800886899232864,
+    "TFDR": 0.08102232962846756,
+    "TRKE": 0.05447663366794586,
+    "TRKA": 0.053311802446842194,
+    "TFDU": 0.04880399629473686,
+    "5486": 0.04721682891249657,
+    "TECA": 0.0,
+    "TDMV": 0.0,
+    "TDMW": 0.0
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "RTD5043A(S)",
+        "saliency": 0.31636109948158264,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "0D10",
+        "saliency": 0.25601041316986084,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TECA",
+    "TDMV",
+    "TDMW"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_883215_late_train.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_883215_late_train.png",
+  "focal_train": "0D10"
+}

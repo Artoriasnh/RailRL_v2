@@ -1,0 +1,68 @@
+{
+  "sample_id": 883220,
+  "stratum": "late_train",
+  "focal_route_id": null,
+  "positions": {
+    "TRJY": [
+      32,
+      52
+    ],
+    "TFMW": [
+      82,
+      24
+    ],
+    "TRJW": [
+      50,
+      52
+    ],
+    "TNGS": [
+      50,
+      66
+    ],
+    "TFML": [
+      68,
+      24
+    ],
+    "TNGR": [
+      32,
+      66
+    ],
+    "TRKA": [
+      72,
+      48
+    ],
+    "TRJV": [
+      68,
+      52
+    ],
+    "TFMN": [
+      50,
+      24
+    ]
+  },
+  "sal_by_name": {
+    "TRJY": 2.1626884937286377,
+    "TFMW": 1.5703436136245728,
+    "TRJW": 0.9118161201477051,
+    "TNGS": 0.8617185354232788,
+    "TFML": 0.7728422284126282,
+    "TNGR": 0.5868647694587708,
+    "TRKA": 0.4849798083305359,
+    "TRJV": 0.4592666029930115,
+    "TFMN": 0.4590119421482086
+  },
+  "side_top": {
+    "route": [],
+    "train": [
+      {
+        "name": "0D10",
+        "saliency": 0.5019954442977905,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_883220_late_train.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_883220_late_train.png",
+  "focal_train": "0D10"
+}

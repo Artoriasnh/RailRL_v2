@@ -1,0 +1,78 @@
+{
+  "sample_id": 1875903,
+  "stratum": "advance",
+  "focal_route_id": "REC5484A(S)",
+  "positions": {
+    "TECS": [
+      64,
+      8
+    ],
+    "TGAS": [
+      92,
+      8
+    ],
+    "TECR": [
+      68,
+      8
+    ],
+    "TGAR": [
+      94,
+      10
+    ],
+    "TEDC": [
+      70,
+      14
+    ],
+    "TNJR": [
+      22,
+      70
+    ],
+    "5044": [
+      102,
+      54
+    ]
+  },
+  "sal_by_name": {
+    "TECS": 0.6893486976623535,
+    "TGAS": 0.20369568467140198,
+    "TECR": 0.11302060633897781,
+    "TGAR": 0.11227791011333466,
+    "TEDC": 0.06945712864398956,
+    "5044": 0.06853409111499786,
+    "TNJR": 0.0
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "REC5484A(S)",
+        "saliency": 0.23103907704353333,
+        "is_focal": false
+      },
+      {
+        "name": "REC5484E(M)",
+        "saliency": 0.07111798971891403,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "****",
+        "saliency": 0.14093074202537537,
+        "is_focal": true
+      },
+      {
+        "name": "2M21",
+        "saliency": 0.09266388416290283,
+        "is_focal": false
+      }
+    ]
+  },
+  "route_tcs": [
+    "TECS",
+    "TECR",
+    "TNJR"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1875903_advance.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1875903_advance.png",
+  "focal_train": "****"
+}

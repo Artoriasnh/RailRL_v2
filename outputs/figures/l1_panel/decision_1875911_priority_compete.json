@@ -1,0 +1,131 @@
+{
+  "sample_id": 1875911,
+  "stratum": "priority_compete",
+  "focal_route_id": "RTD5045E(M)",
+  "positions": {
+    "TFDY": [
+      18,
+      22
+    ],
+    "TECV": [
+      60,
+      8
+    ],
+    "TGAM": [
+      96,
+      12
+    ],
+    "5045": [
+      96,
+      48
+    ],
+    "TFML": [
+      68,
+      24
+    ],
+    "5076": [
+      28,
+      60
+    ],
+    "TECW": [
+      72,
+      6
+    ],
+    "TDMZ": [
+      88,
+      50
+    ],
+    "TFPB": [
+      90,
+      28
+    ],
+    "TFMY": [
+      86,
+      26
+    ],
+    "TFMW": [
+      82,
+      24
+    ],
+    "TFMU": [
+      78,
+      24
+    ],
+    "TECK": [
+      80,
+      10
+    ],
+    "TECL": [
+      76,
+      10
+    ],
+    "TECM": [
+      72,
+      10
+    ],
+    "TECR": [
+      68,
+      8
+    ],
+    "TECS": [
+      64,
+      8
+    ],
+    "5493": [
+      102,
+      45
+    ]
+  },
+  "sal_by_name": {
+    "TFDY": 1.0066790580749512,
+    "TECV": 0.9288589954376221,
+    "TGAM": 0.8639447689056396,
+    "5045": 0.7593986988067627,
+    "TFML": 0.3222949802875519,
+    "5076": 0.30276042222976685,
+    "5493": 0.2852132022380829,
+    "TECW": 0.23938041925430298,
+    "TDMZ": 0.0,
+    "TFPB": 0.0,
+    "TFMY": 0.0,
+    "TFMW": 0.0,
+    "TFMU": 0.0,
+    "TECK": 0.0,
+    "TECL": 0.0,
+    "TECM": 0.0,
+    "TECR": 0.0,
+    "TECS": 0.0
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "RTD5045E(M)",
+        "saliency": 0.3361218273639679,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "****",
+        "saliency": 0.40116822719573975,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TDMZ",
+    "TFPB",
+    "TFMY",
+    "TFMW",
+    "TFMU",
+    "TECK",
+    "TECL",
+    "TECM",
+    "TECR",
+    "TECS",
+    "TECV"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1875911_priority_compete.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_1875911_priority_compete.png",
+  "focal_train": "****"
+}

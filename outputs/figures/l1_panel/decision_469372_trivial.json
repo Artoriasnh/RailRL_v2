@@ -1,0 +1,73 @@
+{
+  "sample_id": 469372,
+  "stratum": "trivial",
+  "focal_route_id": "RDW5328B(M)",
+  "positions": {
+    "TPRE": [
+      12,
+      30
+    ],
+    "TPRJ": [
+      14,
+      32
+    ],
+    "TPRG": [
+      14,
+      30
+    ],
+    "TPRH": [
+      16,
+      32
+    ],
+    "5324": [
+      102,
+      54
+    ],
+    "5328": [
+      102,
+      44
+    ],
+    "T938": [
+      102,
+      42
+    ]
+  },
+  "sal_by_name": {
+    "TPRE": 0.13448575139045715,
+    "TPRJ": 0.10786227136850357,
+    "TPRG": 0.09136984497308731,
+    "5324": 0.0814526230096817,
+    "TPRH": 0.05244726687669754,
+    "5328": 0.0501418374478817,
+    "T938": 0.029244594275951385
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "RDW5328B(M)",
+        "saliency": 0.08674435317516327,
+        "is_focal": false
+      },
+      {
+        "name": "RDW5328A(M)",
+        "saliency": 0.028688272461295128,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "0D01",
+        "saliency": 0.04504919424653053,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TPRE",
+    "TPRG",
+    "TPRH"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_469372_trivial.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_469372_trivial.png",
+  "focal_train": "0D01"
+}

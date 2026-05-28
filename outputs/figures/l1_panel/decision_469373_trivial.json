@@ -1,0 +1,74 @@
+{
+  "sample_id": 469373,
+  "stratum": "trivial",
+  "focal_route_id": "RDW5324A(M)",
+  "positions": {
+    "TPRC": [
+      10,
+      28
+    ],
+    "TPRJ": [
+      14,
+      32
+    ],
+    "TPRM": [
+      16,
+      30
+    ],
+    "TPRU": [
+      18,
+      32
+    ],
+    "5316": [
+      102,
+      57
+    ],
+    "TPRZ": [
+      102,
+      42
+    ],
+    "5324": [
+      102,
+      54
+    ],
+    "TPRW": [
+      17.02329553662853,
+      29.16344427320205
+    ]
+  },
+  "sal_by_name": {
+    "TPRC": 0.046746574342250824,
+    "TPRJ": 0.03518672287464142,
+    "TPRM": 0.032858673483133316,
+    "TPRU": 0.031046494841575623,
+    "5316": 0.030074117705225945,
+    "TPRZ": 0.027834905311465263,
+    "5324": 0.02682732231914997,
+    "TPRW": 0.02504388429224491
+  },
+  "side_top": {
+    "route": [
+      {
+        "name": "RDW5324A(M)",
+        "saliency": 0.3895459771156311,
+        "is_focal": false
+      }
+    ],
+    "train": [
+      {
+        "name": "0D01",
+        "saliency": 0.21162213385105133,
+        "is_focal": true
+      }
+    ]
+  },
+  "route_tcs": [
+    "TPRJ",
+    "TPRM",
+    "TPRU",
+    "TPRW"
+  ],
+  "html_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_469373_trivial.html",
+  "png_path": "E:\\Claude\\RailRL_v2\\outputs\\figures\\l1_panel\\decision_469373_trivial.png",
+  "focal_train": "0D01"
+}

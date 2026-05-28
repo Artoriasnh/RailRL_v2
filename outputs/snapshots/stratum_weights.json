@@ -1,0 +1,37 @@
+{
+  "0": {
+    "name": "late_train",
+    "train_freq": 445386,
+    "weight": 0.001498413645075175
+  },
+  "1": {
+    "name": "advance",
+    "train_freq": 218001,
+    "weight": 0.002141759772103175
+  },
+  "2": {
+    "name": "call_on",
+    "train_freq": 45937,
+    "weight": 0.0046657201399017585
+  },
+  "3": {
+    "name": "platform_dev",
+    "train_freq": 2265,
+    "weight": 0.021011927654376678
+  },
+  "4": {
+    "name": "priority_compete",
+    "train_freq": 197162,
+    "weight": 0.0022521037436927086
+  },
+  "5": {
+    "name": "unusual_id",
+    "train_freq": 4003,
+    "weight": 0.015805462363360657
+  },
+  "6": {
+    "name": "trivial",
+    "train_freq": 559310,
+    "weight": 0.0013371302312001735
+  }
+}

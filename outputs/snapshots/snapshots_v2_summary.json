@@ -1,0 +1,9 @@
+{
+  "n_snapshots_built": 1996572,
+  "n_skipped_no_tc": 3051,
+  "n_audit_failures": 0,
+  "n_audited": 1996,
+  "n_total_rows_merged": 1996572,
+  "n_workers": 6,
+  "elapsed_seconds": 6156.8
+}
