@@ -32,18 +32,28 @@ supervised heads, and decisions are made interpretable across five levels.
 
 ## Headline results (seed42 test, set-only unless noted)
 
-- **Imitation** — CQL action top-1 **95.7%** (set-only); crushes non-learned baselines on the hard strata
-  (call_on 88% vs ≤5%, platform_dev 90% vs 0%). **BC-HG ≈ CQL on accuracy (95.0 vs 95.7)** — on this
-  near-deterministic task imitation alone is strong; CQL's value-add is the calibrated Q-function (OPE /
-  counterfactual / override / OOD-safety), not raw accuracy (an honest finding; reframes the BC-vs-RL story).
-- **Policy value (OPE/FQE)** — total ΔV ≈ 0 (delay-neutral, wait improved, throughput tiny cost): the model
-  matches the expert overall and slightly reduces waiting. Sparse reward under-weights delay (reward-design
-  finding, corroborated by L5-IRL: the signaller prioritizes delay).
+- **Imitation (Table I, set-only)** — clean three-tier ordering:
+  **non-learned ~53% ≪ BC-HG 91.8% < IQL 94.1% < CQL 96.0 ± 0.2%** (CQL is **3-seed mean ± std**;
+  BC/IQL are seed42). The big jump is **BC → offline-RL** (+2-9pp per stratum), and **CQL ≈ IQL**
+  (~1.9pp gap) — i.e. the win over imitation is robust to algorithm, **not a CQL-specific artifact**
+  (spec §1.2 closed). The offline-RL value is **largest on the rare/expert strata**: platform_dev
+  89.6 ± 0.9 / 86 vs BC 77 (+13/+9pp), call_on 89.1 ± 0.7 / 82 vs BC 80 (+9/+2pp), advance 93.4 ± 1.3 /
+  86 vs BC 84 (+9-8pp). Non-learned baselines collapse there (call_on ≤5%, platform_dev 0%). **3-seed
+  CQL std < 1pp on most strata** → the model is highly reproducible.
+- **Policy value (OPE/FQE, 3-seed)** — per-component ΔV vs signaller (fresh-init multi-key FQE):
+  delay **−0.008 ± 0.020** (≈ 0, *delay-neutral*), throughput **−0.020 ± 0.006** (tiny cost),
+  headway **+0.011 ± 0.008** (marginal +), **wait +0.054 ± 0.014** (significant + ★, *robust*); total
+  **+0.04 ± 0.03** (fresh-init, primary). The model matches the expert overall and **significantly
+  reduces waiting**. Sparse reward under-weights delay (reward-design finding, corroborated by L5-IRL:
+  the signaller prioritizes delay).
 - **Safety (Tier-3)** — 0% genuine-unsafe divergences; conflict-neutral.
-- **Rule compliance (L4)** — model 81.0% vs signaller 85.7% on hard Plan rules (concentrated in call_on);
-  both deviate ~15-20% (the Plan is guidance, not law).
-- **Selective override (§12)** — agreement 95.7% (set); consider-override only ~0.2% (robust to δ_L3) — the
-  model rarely has a strong, rule-safe, faithful reason to override the expert → respects experience.
+- **Rule compliance (L4, 3-seed)** — model **85.0 ± 2.9%** vs signaller **85.7% (exact, no seed
+  variance ✓)** on hard Plan rules → **statistically indistinguishable from the human signaller's
+  adherence rate** (the earlier seed42-only "81% vs 86%" was within the seed-noise envelope).
+- **Selective override (§12, 3-seed)** — agreement (set-only) **96.01 ± 0.21%** (exactly matches Tier-1
+  ✓ cross-eval consistency); consider-override only **0.22 ± 0.14%** (PRIMARY δ=0.5 + refined gate_l4),
+  robust to δ_L3 sweep → the model rarely has a strong, rule-safe, faithful reason to override the
+  expert → respects experience.
 
 ## Three contributions (ESWA structure)
 

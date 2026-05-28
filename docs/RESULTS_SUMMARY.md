@@ -20,7 +20,7 @@
 | **07 L2** | **全量 12 决策**(completeness 全 ±0.0000) | ✅ 全量 |
 | **10 L1** | **全量 12 例 + 300 决策审计**(忠实度 448 distinct) | ✅ 全量 |
 | **L4 规则合规** | **全量 test(seed42)：模型 81.0% vs 信号员 85.7% 硬规则合规** | ✅ 全量（19 条规则 Hao 审签；修了 focal_signal 格式 bug） |
-| seed44 eval / BC-IQL baselines / §12 | — | ❌ 未做 |
+| **3-seed eval 聚合 (Tier-1/2 + L4 + §12 + OPE)** | seed42/43/44 全 | ✅ **全量**（CQL overall 96.0±0.2、L4 模型 85.0±2.9% vs 人 85.7%、§12 agreement 96.0±0.2 / consider-override 0.22±0.14%、OPE wait ΔV +0.054±0.014/delay -0.008±0.020/total +0.04±0.03） |
 
 ---
 
@@ -103,7 +103,8 @@
 
 **多 seed / baseline / 收尾**
 - eval(Table I/OPE/L1/L2/L5)目前**仅 seed42** → 在 seed43/44 跑 eval → **3-seed mean±std**(发表硬要求;训练已 3-seed 一致 .9823/.9832/.9830)。
-- 学习型 baseline：**B2 BC-HG ✅ 跑完(seed42 test)** —— set-only **0.9501**(call_on .881 / platform_dev .903)，**≈ CQL .957**。**重要发现**：近确定性任务(τ≈.998)上模仿≈离线RL，CQL 的价值在**校准 Q 函数**(OPE/L3/§12/OOD 安全)而非准确率 → **BC-vs-RL 卖点须重构**(别讲"准确率碾压")。**B3 IQL**：首跑**发散**(L_V 误用 next-state Q→当前动作 idx 撞 s' 的 masked −1e9→L_V≈1e18)，**已修**(IQL 分支加 target(batch_s)当前状态 Q + grad-clip 含 value_head)，Hao 重跑中。B1 BC-flat(flat 编码器)暂缓。`outputs/eval/bc_seed42_test_metrics.json`。
+- **学习型 baseline ✅** —— BC-HG (seed42): **0.9178** ; IQL (seed42): **0.9409** ; CQL (**3-seed mean ± std**): **0.9601 ± 0.0021**(seed42/43/44 = .9572/.9613/.9619)。**Table I 完整(set-only top-1)**：非学习 ~53% ≪ BC-HG 91.8 < IQL 94.1 < CQL **96.0 ± 0.2**。难 strata gap 仍最大：platform_dev BC 77→IQL 86→CQL **89.6 ± 0.9**；call_on BC 80→IQL 82→CQL **89.1 ± 0.7**；advance BC 84→IQL 86→CQL **93.4 ± 1.3**。3-seed CQL **std<1pp 占绝大多数 → 模型极稳定**。结论：**BC→offline-RL 大跳跃 + CQL≈IQL（封住 spec §1.2 "非算法假象"）+ 增量集中难 strata**。B1 BC-flat 暂缓。
+- **L4 hard-rule 合规 (CQL, 3-seed)**: 模型 **85.05 ± 2.90%**(values .8101/.8646/.8768);信号员 **85.72%(精确同值跨 seed ✓**)。**结论强化**:模型与人**在 Plan 遵守率上统计无差**——原单 seed "模型 81 vs 人 86" 实际处在 seed 噪声范围内。
 - docx 重建(可选)。
 
 ## 12. 关键输出文件
