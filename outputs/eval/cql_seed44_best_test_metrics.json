@@ -1,0 +1,91 @@
+{
+  "tier1_overall": {
+    "n": 338284,
+    "n_set": 92280,
+    "n_wait": 246004,
+    "action_top1_all": 0.9895886296721098,
+    "action_top1_set": 0.9619202427394885,
+    "wait_rate_signaller": 0.7272114554634568,
+    "wait_rate_model": 0.7274390748601767,
+    "wait_rate_delta": 0.0002276193967198914,
+    "wait_recall": 0.999967480203574,
+    "wait_precision": 0.999654585278831,
+    "route_head_top1": 0.9526441265713047,
+    "n_time_valid": 89616,
+    "time_head_top1": 0.6797446884484913
+  },
+  "tier2_stratified": {
+    "overall": {
+      "n": 338284,
+      "n_set": 92280,
+      "n_wait": 246004,
+      "acc_all": 0.9895886296721098,
+      "acc_set": 0.9619202427394885
+    },
+    "late_train": {
+      "n": 103118,
+      "n_set": 24959,
+      "n_wait": 78159,
+      "acc_all": 0.9938129133613918,
+      "acc_set": 0.974558275571938
+    },
+    "advance": {
+      "n": 49226,
+      "n_set": 1760,
+      "n_wait": 47466,
+      "acc_all": 0.9980904400113761,
+      "acc_set": 0.946590909090909
+    },
+    "call_on": {
+      "n": 11709,
+      "n_set": 6371,
+      "n_wait": 5338,
+      "acc_all": 0.9434622939619096,
+      "acc_set": 0.8962486265892324
+    },
+    "platform_dev": {
+      "n": 496,
+      "n_set": 308,
+      "n_wait": 188,
+      "acc_all": 0.9395161290322581,
+      "acc_set": 0.9025974025974026
+    },
+    "priority_compete": {
+      "n": 46328,
+      "n_set": 16059,
+      "n_wait": 30269,
+      "acc_all": 0.9772707649801416,
+      "acc_set": 0.934616103119746
+    },
+    "unusual_id": {
+      "n": 278,
+      "n_set": 26,
+      "n_wait": 252,
+      "acc_all": 0.9784172661870504,
+      "acc_set": 0.7692307692307693
+    },
+    "trivial": {
+      "n": 127129,
+      "n_set": 42797,
+      "n_wait": 84332,
+      "acc_all": 0.9918271991441764,
+      "acc_set": 0.9757459635021146
+    }
+  },
+  "q_gap": {
+    "n": 296767,
+    "mean_gap": 30.391082100720787,
+    "p5_gap": 7.83105395436287,
+    "p95_gap": 58.22541619539263,
+    "frac_chosen_is_argmax": 0.9881321036368599
+  },
+  "meta": {
+    "seed": 44,
+    "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed44\\best.pt",
+    "ckpt_name": "best.pt",
+    "split": "test",
+    "n": 338284,
+    "val_action_acc_ckpt": 0.9829886930834267,
+    "stratified_sampling": false
+  }
+}

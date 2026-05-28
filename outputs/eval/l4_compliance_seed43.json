@@ -1,0 +1,434 @@
+{
+  "meta": {
+    "seed": 43,
+    "ckpt": "E:\\Claude\\RailRL_v2\\outputs\\train\\cql_seed43\\best.pt",
+    "split": "test",
+    "n_audited": 338284,
+    "n_rules": 19,
+    "note": "hard rules (high) gate; soft (med) reference-only; soft 'no-soft-rule' dominates because destination direction is hidden by leak audit (resolve_direction\u2192None) \u2014 supply a headcode\u2192direction map to activate."
+  },
+  "headline": {
+    "model_hard_compliant_rate": 0.8645727794663964,
+    "model_hard_denom": 2961,
+    "signaller_hard_compliant_rate": 0.8571915473755964,
+    "signaller_hard_denom": 2934,
+    "both_rendered_n": 2864,
+    "both_compliant_n": 2390
+  },
+  "model": {
+    "hard": {
+      "call_on": {
+        "n": 11709,
+        "counts": {
+          "no-rule": 4347,
+          "wait": 5353,
+          "compliant": 1816,
+          "non-compliant": 193
+        },
+        "frac": {
+          "no-rule": 0.3712528823981553,
+          "wait": 0.45716969852250405,
+          "compliant": 0.15509437185071312,
+          "non-compliant": 0.01648304722862755
+        }
+      },
+      "overall": {
+        "n": 338284,
+        "counts": {
+          "no-rule": 85879,
+          "wait": 246087,
+          "undetermined": 109,
+          "compliant": 2560,
+          "policy-applies": 3248,
+          "non-compliant": 401
+        },
+        "frac": {
+          "no-rule": 0.2538665736481773,
+          "wait": 0.7274568114365444,
+          "undetermined": 0.0003222144706814393,
+          "compliant": 0.007567605916921876,
+          "policy-applies": 0.00960140000709463,
+          "non-compliant": 0.0011853945205803408
+        }
+      },
+      "priority_compete": {
+        "n": 46328,
+        "counts": {
+          "no-rule": 15304,
+          "wait": 30291,
+          "compliant": 249,
+          "policy-applies": 417,
+          "non-compliant": 63,
+          "undetermined": 4
+        },
+        "frac": {
+          "no-rule": 0.3303401830426524,
+          "wait": 0.6538378518390606,
+          "compliant": 0.005374719392160249,
+          "policy-applies": 0.009001036090485236,
+          "non-compliant": 0.0013598687618718703,
+          "undetermined": 8.634087376964255e-05
+        }
+      },
+      "advance": {
+        "n": 49226,
+        "counts": {
+          "no-rule": 1680,
+          "wait": 47467,
+          "undetermined": 79
+        },
+        "frac": {
+          "no-rule": 0.03412830617966116,
+          "wait": 0.9642668508511762,
+          "undetermined": 0.0016048429691626377
+        }
+      },
+      "unusual_id": {
+        "n": 278,
+        "counts": {
+          "no-rule": 25,
+          "wait": 252,
+          "policy-applies": 1
+        },
+        "frac": {
+          "no-rule": 0.08992805755395683,
+          "wait": 0.9064748201438849,
+          "policy-applies": 0.0035971223021582736
+        }
+      },
+      "trivial": {
+        "n": 127129,
+        "counts": {
+          "no-rule": 40904,
+          "wait": 84351,
+          "policy-applies": 1313,
+          "compliant": 432,
+          "undetermined": 3,
+          "non-compliant": 126
+        },
+        "frac": {
+          "no-rule": 0.3217519212768133,
+          "wait": 0.6635071462844827,
+          "policy-applies": 0.010328091938110108,
+          "compliant": 0.003398123166232724,
+          "undetermined": 2.3598077543282806e-05,
+          "non-compliant": 0.0009911192568178779
+        }
+      },
+      "late_train": {
+        "n": 103118,
+        "counts": {
+          "undetermined": 23,
+          "wait": 78185,
+          "no-rule": 23316,
+          "policy-applies": 1517,
+          "compliant": 58,
+          "non-compliant": 19
+        },
+        "frac": {
+          "undetermined": 0.00022304544308462151,
+          "wait": 0.7582090420683101,
+          "no-rule": 0.22610989352004499,
+          "policy-applies": 0.014711301615624818,
+          "compliant": 0.0005624624216916543,
+          "non-compliant": 0.00018425493124381775
+        }
+      },
+      "platform_dev": {
+        "n": 496,
+        "counts": {
+          "no-rule": 303,
+          "wait": 188,
+          "compliant": 5
+        },
+        "frac": {
+          "no-rule": 0.6108870967741935,
+          "wait": 0.3790322580645161,
+          "compliant": 0.010080645161290322
+        }
+      }
+    },
+    "soft": {
+      "call_on": {
+        "n": 11709,
+        "counts": {
+          "no-soft-rule": 11709
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "overall": {
+        "n": 338284,
+        "counts": {
+          "no-soft-rule": 338284
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "priority_compete": {
+        "n": 46328,
+        "counts": {
+          "no-soft-rule": 46328
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "advance": {
+        "n": 49226,
+        "counts": {
+          "no-soft-rule": 49226
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "unusual_id": {
+        "n": 278,
+        "counts": {
+          "no-soft-rule": 278
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "trivial": {
+        "n": 127129,
+        "counts": {
+          "no-soft-rule": 127129
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "late_train": {
+        "n": 103118,
+        "counts": {
+          "no-soft-rule": 103118
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "platform_dev": {
+        "n": 496,
+        "counts": {
+          "no-soft-rule": 496
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      }
+    }
+  },
+  "signaller": {
+    "hard": {
+      "call_on": {
+        "n": 11709,
+        "counts": {
+          "no-rule": 4378,
+          "wait": 5338,
+          "compliant": 1783,
+          "non-compliant": 210
+        },
+        "frac": {
+          "no-rule": 0.37390041848150996,
+          "wait": 0.45588863267571955,
+          "compliant": 0.15227602698778717,
+          "non-compliant": 0.017934921854983348
+        }
+      },
+      "overall": {
+        "n": 338284,
+        "counts": {
+          "no-rule": 85960,
+          "wait": 246004,
+          "undetermined": 110,
+          "compliant": 2515,
+          "policy-applies": 3276,
+          "non-compliant": 419
+        },
+        "frac": {
+          "no-rule": 0.25410601742914235,
+          "wait": 0.7272114554634568,
+          "undetermined": 0.0003251705667427369,
+          "compliant": 0.007434581594163484,
+          "policy-applies": 0.009684170696810964,
+          "non-compliant": 0.0012386042496836977
+        }
+      },
+      "priority_compete": {
+        "n": 46328,
+        "counts": {
+          "no-rule": 15320,
+          "wait": 30269,
+          "compliant": 250,
+          "policy-applies": 425,
+          "undetermined": 4,
+          "non-compliant": 60
+        },
+        "frac": {
+          "no-rule": 0.33068554653773097,
+          "wait": 0.6533629770333276,
+          "compliant": 0.005396304610602659,
+          "policy-applies": 0.009173717838024521,
+          "undetermined": 8.634087376964255e-05,
+          "non-compliant": 0.0012951131065446382
+        }
+      },
+      "advance": {
+        "n": 49226,
+        "counts": {
+          "no-rule": 1680,
+          "wait": 47466,
+          "undetermined": 80
+        },
+        "frac": {
+          "no-rule": 0.03412830617966116,
+          "wait": 0.9642465363832121,
+          "undetermined": 0.0016251574371267217
+        }
+      },
+      "unusual_id": {
+        "n": 278,
+        "counts": {
+          "no-rule": 25,
+          "wait": 252,
+          "policy-applies": 1
+        },
+        "frac": {
+          "no-rule": 0.08992805755395683,
+          "wait": 0.9064748201438849,
+          "policy-applies": 0.0035971223021582736
+        }
+      },
+      "trivial": {
+        "n": 127129,
+        "counts": {
+          "no-rule": 40907,
+          "wait": 84332,
+          "policy-applies": 1331,
+          "compliant": 425,
+          "undetermined": 3,
+          "non-compliant": 131
+        },
+        "frac": {
+          "no-rule": 0.3217755193543566,
+          "wait": 0.6633576917933752,
+          "policy-applies": 0.010469680403369805,
+          "compliant": 0.0033430609852983977,
+          "undetermined": 2.3598077543282806e-05,
+          "non-compliant": 0.0010304493860566826
+        }
+      },
+      "late_train": {
+        "n": 103118,
+        "counts": {
+          "undetermined": 23,
+          "wait": 78159,
+          "no-rule": 23346,
+          "policy-applies": 1519,
+          "compliant": 53,
+          "non-compliant": 18
+        },
+        "frac": {
+          "undetermined": 0.00022304544308462151,
+          "wait": 0.7579569037413448,
+          "no-rule": 0.22640082235885103,
+          "policy-applies": 0.01473069687154522,
+          "compliant": 0.0005139742818906495,
+          "non-compliant": 0.00017455730328361682
+        }
+      },
+      "platform_dev": {
+        "n": 496,
+        "counts": {
+          "no-rule": 304,
+          "wait": 188,
+          "compliant": 4
+        },
+        "frac": {
+          "no-rule": 0.6129032258064516,
+          "wait": 0.3790322580645161,
+          "compliant": 0.008064516129032258
+        }
+      }
+    },
+    "soft": {
+      "call_on": {
+        "n": 11709,
+        "counts": {
+          "no-soft-rule": 11709
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "overall": {
+        "n": 338284,
+        "counts": {
+          "no-soft-rule": 338284
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "priority_compete": {
+        "n": 46328,
+        "counts": {
+          "no-soft-rule": 46328
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "advance": {
+        "n": 49226,
+        "counts": {
+          "no-soft-rule": 49226
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "unusual_id": {
+        "n": 278,
+        "counts": {
+          "no-soft-rule": 278
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "trivial": {
+        "n": 127129,
+        "counts": {
+          "no-soft-rule": 127129
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "late_train": {
+        "n": 103118,
+        "counts": {
+          "no-soft-rule": 103118
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      },
+      "platform_dev": {
+        "n": 496,
+        "counts": {
+          "no-soft-rule": 496
+        },
+        "frac": {
+          "no-soft-rule": 1.0
+        }
+      }
+    }
+  }
+}

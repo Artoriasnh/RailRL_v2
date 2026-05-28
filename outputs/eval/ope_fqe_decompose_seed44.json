@@ -1,0 +1,31 @@
+{
+  "keys": [
+    "total",
+    "delay",
+    "throughput",
+    "headway",
+    "wait"
+  ],
+  "gamma": 0.95,
+  "ckpt": "/rds/homes/h/hxn886/ondemand/RailRL_v2/outputs/train/cql_seed44/best.pt",
+  "warm_start": false,
+  "epochs": 1,
+  "n_states": 338284,
+  "n_episodes": 13739,
+  "delta_V": {
+    "total": 0.011250197203133944,
+    "delay": -0.028314388567091734,
+    "throughput": -0.020811743617006162,
+    "headway": 0.021828810807600543,
+    "wait": 0.06356470002918554
+  },
+  "V_pi": {
+    "total": -1.3615324896122056,
+    "delay": -0.13256516992983314,
+    "throughput": 1.018445995171431,
+    "headway": -0.09371274575392408,
+    "wait": -2.128683387650325
+  },
+  "sum_components_delta_V": 0.036267378652688184,
+  "fit_residual_abs_mean": 0.2535435579854545
+}

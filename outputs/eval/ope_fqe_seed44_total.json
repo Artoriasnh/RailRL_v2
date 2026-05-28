@@ -1,0 +1,16 @@
+{
+  "reward_key": "total",
+  "gamma": 0.95,
+  "ckpt": "/rds/homes/h/hxn886/ondemand/RailRL_v2/outputs/train/cql_seed44/best.pt",
+  "n_states": 338284,
+  "n_episodes": 13739,
+  "V_pi": -1.4004597165573804,
+  "V_beta": -1.3727826868153397,
+  "delta_V": -0.027677029742040747,
+  "ci95": [
+    -0.09077189166246645,
+    0.022825858287610176
+  ],
+  "epochs": 3,
+  "warm_start": false
+}
